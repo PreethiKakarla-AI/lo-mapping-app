@@ -11,7 +11,8 @@ warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 # Streamlit Config & File Path
 # ==========================================
 st.set_page_config(page_title="Learning Objective Mapping Form", layout="centered")
-FILE = Path("/Users/pritheekakarla/Downloads/LOreferenceData_final_formfeedversion2.xlsx")
+# Excel file is in the same directory as app.py
+FILE = Path("LOreferenceData_final_formfeedversion2.xlsx")
 
 # ==========================================
 # Custom CSS for Section Styling
