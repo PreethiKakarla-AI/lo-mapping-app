@@ -261,16 +261,18 @@ if assessed_flag:
         acoe_standard = st.selectbox(
             "ACOE Standard",
             [
-                "By graduation, students can demonstrate basic life support skills for emergencies in optometric practice.",
-                "By graduation, students can identify, record, and analyze pertinent history and problems presented by the patient.",
-                "By graduation, students can examine and evaluate the patient to arrive at an appropriate diagnosis.",
-                "By graduation, students can formulate a rational treatment and management plan and understand implications of options.",
-                "By graduation, students can provide relevant patient education and counseling.",
-                "By graduation, students can use knowledge of optometry’s role and other health professions to address patient and public health needs.",
-                "By graduation, students can apply knowledge of interprofessional collaborative care, ethics, and medico-legal aspects in optometric care.",
-                "By graduation, students can demonstrate understanding of research principles and critically assess the literature.",
-                "By graduation, students can demonstrate effective and culturally sensitive oral and written communication with professionals and patients.",
-                "By graduation, students can demonstrate understanding of basic principles and philosophy of optometric practice management.",
+                Students must attain the defined set of clinical competencies established by the program."
+                "By graduation, students must be able to recognize and appropriately respond to ocular and systemic emergencies in optometric practice.",
+                "By graduation, students must be able to identify and analyze relevant history and presenting problems for each patient.",
+                "By graduation, students must be able to perform appropriate examinations and evaluate findings to reach an accurate diagnosis.",
+                "By graduation, students must be able to formulate and justify management plans, understanding risks and benefits of options.",
+                "By graduation, students must be able to provide clear, relevant patient education and counseling.",
+                "By graduation, students must be able to consider and address public and population health factors in patient care.",
+                "By graduation, students must be able to apply ethical, legal, and medico-legal principles in delivering optometric care.",
+                "By graduation, students must be able to use research principles to critically appraise scientific and clinical literature.",
+                "By graduation, students must be able to communicate effectively, orally and in writing, with patients and other professionals.",
+                "By graduation, students must be able to demonstrate understanding of optometric practice management principles.",
+                
             ],
         )
 
