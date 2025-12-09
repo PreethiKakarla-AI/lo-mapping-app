@@ -278,12 +278,12 @@ except Exception:
     pass
 
 # ==========================================
-# 📊 Learning Objective Visual Dashboard – Summary
+# Learning Objective Visual Dashboard - Summary
 # ==========================================
 import matplotlib.pyplot as plt
 
 st.markdown("---")
-with st.expander("📊 Learning Objective Visual Dashboard – Summary", expanded=False):
+with st.expander("Learning Objective Visual Dashboard - Summary", expanded=False):
     try:
         df = pd.read_excel(FILE, sheet_name="tblLO_Mapping")
 
@@ -360,22 +360,22 @@ with st.expander("📊 Learning Objective Visual Dashboard – Summary", expande
         filtered_df = df[(df["Year"] == selected_year) & (df["Semester"] == selected_semester)]
 
         # --- Charts ---
-        st.markdown("### 🌱 Bloom Level Distribution")
+        st.markdown("### Bloom Level Distribution")
         st.bar_chart(filtered_df["BloomCategory"].value_counts())
 
-        st.markdown("### 🧑‍🏫 Teaching Method Distribution")
+        st.markdown("### Teaching Method Distribution")
         fig1, ax1 = plt.subplots()
         filtered_df["TeachingMethodCategory"].value_counts().plot.pie(autopct='%1.1f%%', ax=ax1)
         ax1.set_ylabel("")
         st.pyplot(fig1)
 
-        st.markdown("### 🧪 Assessment Method Distribution")
+        st.markdown("### Assessment Method Distribution")
         fig2, ax2 = plt.subplots()
         filtered_df["AssessmentCategory"].value_counts().plot.pie(autopct='%1.1f%%', ax=ax2)
         ax2.set_ylabel("")
         st.pyplot(fig2)
 
-        st.markdown("### 🔁 Teach–Test Alignment")
+        st.markdown("### Teach–Test Alignment")
         fig3, ax3 = plt.subplots()
         filtered_df["AlignmentStatus"].value_counts().plot.pie(autopct='%1.1f%%', ax=ax3)
         ax3.set_ylabel("")
