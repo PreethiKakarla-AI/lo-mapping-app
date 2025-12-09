@@ -261,18 +261,19 @@ if assessed_flag:
         acoe_standard = st.selectbox(
             "ACOE Standard",
             [
-                Students must attain the defined set of clinical competencies established by the program."
-                "By graduation, students must be able to recognize and appropriately respond to ocular and systemic emergencies in optometric practice.",
-                "By graduation, students must be able to identify and analyze relevant history and presenting problems for each patient.",
-                "By graduation, students must be able to perform appropriate examinations and evaluate findings to reach an accurate diagnosis.",
-                "By graduation, students must be able to formulate and justify management plans, understanding risks and benefits of options.",
-                "By graduation, students must be able to provide clear, relevant patient education and counseling.",
-                "By graduation, students must be able to consider and address public and population health factors in patient care.",
-                "By graduation, students must be able to apply ethical, legal, and medico-legal principles in delivering optometric care.",
-                "By graduation, students must be able to use research principles to critically appraise scientific and clinical literature.",
-                "By graduation, students must be able to communicate effectively, orally and in writing, with patients and other professionals.",
-                "By graduation, students must be able to demonstrate understanding of optometric practice management principles.",
                 
+                "2.8  Students must attain the defined set of clinical competencies established by the program.",
+                "2.12 By graduation, students must be able to recognize and appropriately respond to ocular and systemic emergencies in optometric practice.",
+                "2.13 By graduation, students must be able to identify and analyze relevant history and presenting problems for each patient.",
+                "2.14 By graduation, students must be able to perform appropriate examinations and evaluate findings to reach an accurate diagnosis.",
+                "2.15 By graduation, students must be able to formulate and justify management plans, understanding risks and benefits of options.",
+                "2.16 By graduation, students must be able to provide clear, relevant patient education and counseling.",
+                "2.17 By graduation, students must be able to consider and address public and population health factors in patient care.",
+                "2.18 By graduation, students must be able to apply ethical, legal, and medico-legal principles in delivering optometric care.",
+                "2.19 By graduation, students must be able to use research principles to critically appraise scientific and clinical literature.",
+                "2.20 By graduation, students must be able to communicate effectively, orally and in writing, with patients and other professionals.",
+                "2.21 By graduation, students must be able to demonstrate understanding of optometric practice management principles.",
+            
             ],
         )
 
