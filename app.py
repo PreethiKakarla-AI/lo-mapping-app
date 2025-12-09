@@ -305,17 +305,19 @@ with st.expander("Learning Objective Visual Dashboard - Summary", expanded=False
         def map_teaching(activity):
             act = str(activity).lower()
             if "lecture" in act:
-                return "Lecture"
+               return "Lecture"
+            elif "small group" in act or "discussion" in act:
+               return "Discussion"
             elif "case" in act:
-                return "Case"
+               return "Case"
             elif "lab" in act:
-                return "Lab"
-            elif "simu" in act:
-                return "Simulation"
+               return "Lab"
+            elif "simulation" in act:
+               return "Simulation"
             elif "tbl" in act:
-                return "TBL"
-            elif "video" in act:
-                return "Video"
+               return "TBL"
+            elif "flipped" in act:
+               return "Flipped"
             return "Other"
 
         def map_assessment(method):
