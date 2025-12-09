@@ -279,7 +279,11 @@ if assessed_flag:
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-    questions_text = st.text_area("Enter Questions (one per line)")
+    questions_text = st.text_area(
+    "Exam Question(s)",
+    placeholder="Please write the exam question(s) here – one per line"
+    )
+
     questions = [q.strip() for q in questions_text.split("\n") if q.strip()]
 else:
     justification = st.text_area(
