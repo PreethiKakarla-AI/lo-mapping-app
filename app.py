@@ -208,19 +208,82 @@ with st.container():
     selected_desc = st.selectbox("Bloom Level", desc_options)
     bloom_level = desc_to_level_map.get(selected_desc, "")
 
-    # Activity: be robust to column naming
-    activity_source = refs["activity"]
-    if "description" in activity_source.columns:
-        activity_series = activity_source["description"]
-    else:
-        # fallback to last column if "description" is not present
-        activity_series = activity_source.iloc[:, -1]
-    activity_options = activity_series.dropna().astype(str).unique().tolist()
-    activity = st.selectbox("Activity", activity_options)
+    # Teaching Method / Micro-Activity / Summative Assessment
+    teaching_methods = [
+        "Direct instruction",
+        "Mini-lecture",
+        "Demonstration",
+        "Video micro-lecture",
+        "Concept mapping",
+        "Example vs. Non-example",
+        "Guided comparison",
+        "Visual explanation",
+        "Worked examples",
+        "Skill demonstration",
+        "Simulation (SimLab)",
+        "Problem sets",
+        "Case-Based Learning (CBL)",
+        "Problem-Based Learning (PBL)",
+        "Team-Based Learning (TBL)",
+        "Diagnostic simulation",
+        "Debate",
+        "Ranking rounds",
+        "Critique rounds",
+        "Treatment reasoning",
+        "Protocol design",
+        "Project build",
+        "Case plan development",
+        "Clinical pathway creation",
+    ]
 
-    method = st.selectbox(
-        "Assessment Method",
-        refs["methods"].iloc[:, -1].dropna().unique().tolist(),
+    micro_activities = [
+        "Label diagrams",
+        "Match terms",
+        "Flash-classify",
+        "Explain-back",
+        "Compare summaries",
+        "Describe anatomy/phys differences",
+        "Follow algorithm",
+        "Execute skill step",
+        "Perform skill (e.g., retinoscopy)",
+        "Pattern recognition (OCT, VF, cornea)",
+        "Error spotting",
+        "Annotate findings",
+        "Defend best treatment",
+        "Rank options",
+        "Critique management plan",
+        "Build treatment plan",
+        "Build protocol",
+        "Propose diagnostic strategy",
+    ]
+
+    summative_assessments = [
+        "Knowledge MCQs",
+        "Definition SAQ",
+        "Labeling quiz",
+        "Explanation MCQ",
+        "Short answer reasoning",
+        "Map completion scoring",
+        "Applied MCQ",
+        "Numeric SAQ",
+        "OSCE skill station",
+        "Case-based MCQ",
+        "Image interpretation MCQ",
+        "OSCE diagnostic station",
+        "Treatment choice SAQ",
+        "OSCE case justification",
+        "Chart audit Mini-CEX",
+        "Workplace-Based Assessment (WBA)",
+        "Project scoring",
+        "Protocol proposal rubric",
+        "Presentation assessment",
+        "Scholarly project evaluation",
+    ]
+
+    teaching_method = st.selectbox("Teaching Method (macro activity)", teaching_methods)
+    micro_activity = st.selectbox("Micro-Activity", micro_activities)
+    summative_assessment = st.selectbox(
+        "Summative Assessment (assessment method)", summative_assessments
     )
 
     difficulty = st.selectbox(
@@ -261,7 +324,6 @@ if assessed_flag:
         acoe_standard = st.selectbox(
             "ACOE Standard",
             [
-                
                 "2.8  Students must attain the defined set of clinical competencies established by the program.",
                 "2.12 By graduation, students must be able to recognize and appropriately respond to ocular and systemic emergencies in optometric practice.",
                 "2.13 By graduation, students must be able to identify and analyze relevant history and presenting problems for each patient.",
@@ -273,17 +335,15 @@ if assessed_flag:
                 "2.19 By graduation, students must be able to use research principles to critically appraise scientific and clinical literature.",
                 "2.20 By graduation, students must be able to communicate effectively, orally and in writing, with patients and other professionals.",
                 "2.21 By graduation, students must be able to demonstrate understanding of optometric practice management principles.",
-            
             ],
         )
 
         st.markdown("</div>", unsafe_allow_html=True)
 
     questions_text = st.text_area(
-    "Exam Question(s)",
-    placeholder="Please write the exam question(s) here – one per line"
+        "Exam Question(s)",
+        placeholder="Please write the exam question(s) here – one per line",
     )
-
     questions = [q.strip() for q in questions_text.split("\n") if q.strip()]
 else:
     justification = st.text_area(
@@ -313,8 +373,9 @@ if st.button("Save this Learning Objective"):
                         "Lecture_Name": lecture_name,
                         "LearningObjective": learning_objective,
                         "BloomLevel": bloom_level,
-                        "Activity": activity,
-                        "AssessmentMethod": method,
+                        "Activity": teaching_method,
+                        "MicroActivity": micro_activity,
+                        "AssessmentMethod": summative_assessment,
                         "Difficulty": difficulty,
                         "IsAssessed": is_assessed,
                         "NBEO_Condition_Code": nbeo_cond_result["code"],
@@ -343,8 +404,9 @@ if st.button("Save this Learning Objective"):
                     "Lecture_Name": lecture_name,
                     "LearningObjective": learning_objective,
                     "BloomLevel": bloom_level,
-                    "Activity": activity,
-                    "AssessmentMethod": method,
+                    "Activity": teaching_method,
+                    "MicroActivity": micro_activity,
+                    "AssessmentMethod": summative_assessment,
                     "Difficulty": difficulty,
                     "IsAssessed": is_assessed,
                     "ACOE_Standard": "",
