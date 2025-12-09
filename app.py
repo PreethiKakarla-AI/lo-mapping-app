@@ -276,3 +276,110 @@ try:
         st.dataframe(pd.read_excel(FILE, sheet_name="tblLO_Mapping"))
 except Exception:
     pass
+
+# ==========================================
+# 📊 Learning Objective Visual Dashboard – Summary
+# ==========================================
+import matplotlib.pyplot as plt
+
+st.markdown("---")
+with st.expander("📊 Learning Objective Visual Dashboard – Summary", expanded=False):
+    try:
+        df = pd.read_excel(FILE, sheet_name="tblLO_Mapping")
+
+        # --- Mappings ---
+        def normalize_bloom(level):
+            level = str(level).strip().lower()
+            for keyword, label in {
+                "remember": "Remember",
+                "understand": "Understand",
+                "apply": "Apply",
+                "analyze": "Analyze",
+                "evaluate": "Evaluate",
+                "create": "Create"
+            }.items():
+                if keyword in level:
+                    return label
+            return "Other"
+
+        def map_teaching(activity):
+            act = str(activity).lower()
+            if "lecture" in act:
+                return "Lecture"
+            elif "case" in act:
+                return "Case"
+            elif "lab" in act:
+                return "Lab"
+            elif "simu" in act:
+                return "Simulation"
+            elif "tbl" in act:
+                return "TBL"
+            elif "video" in act:
+                return "Video"
+            return "Other"
+
+        def map_assessment(method):
+            m = str(method).lower()
+            if "mcq" in m:
+                return "MCQ"
+            elif "osce" in m or "practic" in m:
+                return "OSCE"
+            elif "essay" in m or "long" in m:
+                return "Essay"
+            elif "oral" in m or "viva" in m:
+                return "Oral"
+            elif "project" in m:
+                return "Project"
+            elif "quiz" in m:
+                return "Quiz"
+            return "Other"
+
+        def get_alignment(activity, method):
+            a = str(activity).strip()
+            m = str(method).strip()
+            if a and m:
+                return "Aligned"
+            elif a:
+                return "Taught_only"
+            elif m:
+                return "Tested_only"
+            return "Ignored"
+
+        df["BloomCategory"] = df["BloomLevel"].apply(normalize_bloom)
+        df["TeachingMethodCategory"] = df["Activity"].apply(map_teaching)
+        df["AssessmentCategory"] = df["AssessmentMethod"].apply(map_assessment)
+        df["AlignmentStatus"] = df.apply(lambda row: get_alignment(row["Activity"], row["AssessmentMethod"]), axis=1)
+        df = df[df["AlignmentStatus"] != "Ignored"]
+
+        # --- Filters ---
+        st.subheader("Filter by Year and Semester")
+        year_options = sorted(df["Year"].dropna().unique())
+        selected_year = st.selectbox("Select Year", year_options)
+        semester_options = sorted(df[df["Year"] == selected_year]["Semester"].dropna().unique())
+        selected_semester = st.selectbox("Select Semester", semester_options)
+        filtered_df = df[(df["Year"] == selected_year) & (df["Semester"] == selected_semester)]
+
+        # --- Charts ---
+        st.markdown("### 🌱 Bloom Level Distribution")
+        st.bar_chart(filtered_df["BloomCategory"].value_counts())
+
+        st.markdown("### 🧑‍🏫 Teaching Method Distribution")
+        fig1, ax1 = plt.subplots()
+        filtered_df["TeachingMethodCategory"].value_counts().plot.pie(autopct='%1.1f%%', ax=ax1)
+        ax1.set_ylabel("")
+        st.pyplot(fig1)
+
+        st.markdown("### 🧪 Assessment Method Distribution")
+        fig2, ax2 = plt.subplots()
+        filtered_df["AssessmentCategory"].value_counts().plot.pie(autopct='%1.1f%%', ax=ax2)
+        ax2.set_ylabel("")
+        st.pyplot(fig2)
+
+        st.markdown("### 🔁 Teach–Test Alignment")
+        fig3, ax3 = plt.subplots()
+        filtered_df["AlignmentStatus"].value_counts().plot.pie(autopct='%1.1f%%', ax=ax3)
+        ax3.set_ylabel("")
+        st.pyplot(fig3)
+
+    except Exception as e:
+        st.error(f"Error generating dashboard: {e}")
