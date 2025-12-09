@@ -159,9 +159,7 @@ with st.container():
     st.markdown("<div class='section-box'>", unsafe_allow_html=True)
     st.subheader("Course Information")
 
-    year = st.selectbox(
-        "Year", sorted(refs["courses"]["year"].dropna().unique())
-    )
+    year = st.selectbox("Year", sorted(refs["courses"]["year"].dropna().unique()))
 
     semester = st.selectbox(
         "Semester",
@@ -182,9 +180,7 @@ with st.container():
     )
 
     type_options = (
-        course_options.query("description == @course_name")[
-            "lecture_or_lab"
-        ]
+        course_options.query("description == @course_name")["lecture_or_lab"]
         .dropna()
         .unique()
     )
@@ -219,9 +215,7 @@ with st.container():
     else:
         # fallback to last column if "description" is not present
         activity_series = activity_source.iloc[:, -1]
-    activity_options = (
-        activity_series.dropna().astype(str).unique().tolist()
-    )
+    activity_options = activity_series.dropna().astype(str).unique().tolist()
     activity = st.selectbox("Activity", activity_options)
 
     method = st.selectbox(
@@ -260,25 +254,23 @@ if assessed_flag:
         st.subheader("Standards Mapping (Hierarchical)")
 
         nbeo_cond_result = hierarchy_select("NBEO Condition", nbeo_conditions)
-        nbeo_disc_result = hierarchy_select(
-            "NBEO Discipline", nbeo_disciplines
-        )
+        nbeo_disc_result = hierarchy_select("NBEO Discipline", nbeo_disciplines)
         asco_result = hierarchy_select("ASCO", asco)
         uhco_result = hierarchy_select("UHCO", uhco)
 
         acoe_standard = st.selectbox(
             "ACOE Standard",
             [
-                "By the time of graduation, students must be able to demonstrate basic life support skills for emergencies encountered in independent optometric practice.",
-                "By the time of graduation, students must be able to identify, record, and analyze pertinent history and problems presented by the patient.",
-                "By the time of graduation, students must be able to examine and evaluate the patient to arrive at an appropriate diagnosis.",
-                "By the time of graduation, students must be able to formulate a rational treatment and management plan and understand the implications of various treatment and management options.",
-                "By the time of graduation, students must be able to provide relevant patient education and counseling.",
-                "By the time of graduation, students must be able to use the knowledge of optometry’s role and the roles of other health professions to appropriately assess and address the health care needs of individual patients and the public health aspects related to the populations being served.",
-                "By the time of graduation, students must be able to apply knowledge of interprofessional collaborative care, ethics, and medico-legal aspects for the delivery of optometric care.",
-                "By the time of graduation, students must be able to demonstrate an understanding of research principles and conduct to critically assess the literature.",
-                "By the time of graduation, students must be able to demonstrate effective and culturally sensitive communications, both oral and written, with other professionals and patients.",
-                "By the time of graduation, students must be able to demonstrate an understanding of the basic principles and philosophy of optometric practice management.",
+                "By graduation, students can demonstrate basic life support skills for emergencies in optometric practice.",
+                "By graduation, students can identify, record, and analyze pertinent history and problems presented by the patient.",
+                "By graduation, students can examine and evaluate the patient to arrive at an appropriate diagnosis.",
+                "By graduation, students can formulate a rational treatment and management plan and understand implications of options.",
+                "By graduation, students can provide relevant patient education and counseling.",
+                "By graduation, students can use knowledge of optometry’s role and other health professions to address patient and public health needs.",
+                "By graduation, students can apply knowledge of interprofessional collaborative care, ethics, and medico-legal aspects in optometric care.",
+                "By graduation, students can demonstrate understanding of research principles and critically assess the literature.",
+                "By graduation, students can demonstrate effective and culturally sensitive oral and written communication with professionals and patients.",
+                "By graduation, students can demonstrate understanding of basic principles and philosophy of optometric practice management.",
             ],
         )
 
@@ -534,7 +526,7 @@ with st.expander("Learning Objective Visual Dashboard - Summary", expanded=False
                     st.markdown("### Teaching Method Distribution")
                     fig1, ax1 = plt.subplots()
                     filtered_df["TeachingMethodCategory"].value_counts().plot(
-                        pie=True, autopct="%1.1f%%", ax=ax1
+                        kind="pie", autopct="%1.1f%%", ax=ax1
                     )
                     ax1.set_ylabel("")
                     st.pyplot(fig1)
@@ -542,7 +534,7 @@ with st.expander("Learning Objective Visual Dashboard - Summary", expanded=False
                     st.markdown("### Assessment Method Distribution")
                     fig2, ax2 = plt.subplots()
                     filtered_df["AssessmentCategory"].value_counts().plot(
-                        pie=True, autopct="%1.1f%%", ax=ax2
+                        kind="pie", autopct="%1.1f%%", ax=ax2
                     )
                     ax2.set_ylabel("")
                     st.pyplot(fig2)
@@ -550,7 +542,7 @@ with st.expander("Learning Objective Visual Dashboard - Summary", expanded=False
                     st.markdown("### Teach–Test Alignment")
                     fig3, ax3 = plt.subplots()
                     filtered_df["AlignmentStatus"].value_counts().plot(
-                        pie=True, autopct="%1.1f%%", ax=ax3
+                        kind="pie", autopct="%1.1f%%", ax=ax3
                     )
                     ax3.set_ylabel("")
                     st.pyplot(fig3)
