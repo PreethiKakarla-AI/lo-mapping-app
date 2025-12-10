@@ -315,6 +315,7 @@ justification = ""
 assessed_flag = str(is_assessed).strip().lower() == "yes"
 
 if assessed_flag:
+    # Standards mapping
     with st.container():
         st.markdown("<div class='section-box'>", unsafe_allow_html=True)
         st.subheader("Standards Mapping (Hierarchical)")
@@ -343,11 +344,31 @@ if assessed_flag:
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-    questions_text = st.text_area(
-        "Exam Question(s)",
-        placeholder="Please write the exam question(s) here – one per line",
-    )
-    questions = [q.strip() for q in questions_text.split("\n") if q.strip()]
+    # Dynamic questions section
+    st.markdown("<div class='section-box'>", unsafe_allow_html=True)
+    st.subheader("Exam Question(s)")
+
+    # Initialise question count in session state
+    if "question_count" not in st.session_state:
+        st.session_state.question_count = 1
+
+    # Button to add another question input
+    if st.button("Add another question"):
+        st.session_state.question_count += 1
+
+    # Render one text_input per question
+    question_texts = []
+    for i in range(st.session_state.question_count):
+        q = st.text_input(
+            f"Question {i + 1}",
+            key=f"question_{i + 1}",
+        )
+        question_texts.append(q)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # Build list of non-empty questions
+    questions = [q.strip() for q in question_texts if q.strip()]
 else:
     justification = st.text_area(
         "Justification for not assessing this Learning Objective"
@@ -366,6 +387,7 @@ if st.button("Save this Learning Objective"):
         target_sheet = "tblLO_Mapping"
 
         if assessed_flag:
+            # one row per question
             for question in questions:
                 new_rows.append(
                     {
