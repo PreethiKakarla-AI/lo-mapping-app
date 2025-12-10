@@ -525,43 +525,9 @@ with st.expander("Learning Objective Visual Dashboard - Summary", expanded=False
                         return label
                 return "Other"
 
-            def map_teaching(activity_value):
-                act = str(activity_value).lower()
-                if "lecture" in act:
-                    return "Lecture"
-                elif "small group" in act or "discussion" in act:
-                    return "Discussion"
-                elif "case" in act:
-                    return "Case"
-                elif "lab" in act:
-                    return "Lab"
-                elif "simulation" in act:
-                    return "Simulation"
-                elif "tbl" in act:
-                    return "TBL"
-                elif "flipped" in act:
-                    return "Flipped"
-                return "Other"
-
-            def map_assessment(method_value):
-                m = str(method_value).lower()
-                if "mcq" in m:
-                    return "MCQ"
-                elif "osce" in m or "practic" in m:
-                    return "OSCE"
-                elif "essay" in m or "long" in m:
-                    return "Essay"
-                elif "oral" in m or "viva" in m:
-                    return "Oral"
-                elif "project" in m:
-                    return "Project"
-                elif "quiz" in m:
-                    return "Quiz"
-                return "Other"
-
-            def get_alignment(activity_value, method_value):
-                a = str(activity_value).strip()
-                m = str(method_value).strip()
+            def get_alignment(micro_value, summative_value):
+                a = str(micro_value).strip()
+                m = str(summative_value).strip()
                 if a and m:
                     return "Aligned"
                 elif a:
@@ -570,14 +536,16 @@ with st.expander("Learning Objective Visual Dashboard - Summary", expanded=False
                     return "Tested_only"
                 return "Ignored"
 
+            # Derived categories based on new fields
             df["BloomCategory"] = df["BloomLevel"].apply(normalize_bloom)
-            df["TeachingMethodCategory"] = df["Activity"].apply(map_teaching)
-            df["AssessmentCategory"] = df["AssessmentMethod"].apply(
-                map_assessment
-            )
+            df["TeachingMethodCategory"] = df["Activity"].fillna("Unspecified")
+            df["MicroActivityCategory"] = df.get(
+                "MicroActivity", pd.Series(index=df.index)
+            ).fillna("Unspecified")
+            df["SummativeCategory"] = df["AssessmentMethod"].fillna("Unspecified")
             df["AlignmentStatus"] = df.apply(
                 lambda row: get_alignment(
-                    row["Activity"], row["AssessmentMethod"]
+                    row.get("MicroActivity", ""), row.get("AssessmentMethod", "")
                 ),
                 axis=1,
             )
@@ -617,23 +585,16 @@ with st.expander("Learning Objective Visual Dashboard - Summary", expanded=False
                     st.markdown("### Bloom Level Distribution")
                     st.bar_chart(filtered_df["BloomCategory"].value_counts())
 
-                    st.markdown("### Teaching Method Distribution")
-                    fig1, ax1 = plt.subplots()
-                    filtered_df["TeachingMethodCategory"].value_counts().plot(
-                        kind="pie", autopct="%1.1f%%", ax=ax1
-                    )
-                    ax1.set_ylabel("")
-                    st.pyplot(fig1)
+                    st.markdown("### Teaching Method (macro) Distribution")
+                    st.bar_chart(filtered_df["TeachingMethodCategory"].value_counts())
 
-                    st.markdown("### Assessment Method Distribution")
-                    fig2, ax2 = plt.subplots()
-                    filtered_df["AssessmentCategory"].value_counts().plot(
-                        kind="pie", autopct="%1.1f%%", ax=ax2
-                    )
-                    ax2.set_ylabel("")
-                    st.pyplot(fig2)
+                    st.markdown("### Micro-Activity Distribution")
+                    st.bar_chart(filtered_df["MicroActivityCategory"].value_counts())
 
-                    st.markdown("### Teach–Test Alignment")
+                    st.markdown("### Summative Assessment Distribution")
+                    st.bar_chart(filtered_df["SummativeCategory"].value_counts())
+
+                    st.markdown("### Micro vs Summative Alignment")
                     fig3, ax3 = plt.subplots()
                     filtered_df["AlignmentStatus"].value_counts().plot(
                         kind="pie", autopct="%1.1f%%", ax=ax3
