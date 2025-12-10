@@ -281,9 +281,9 @@ with st.container():
     ]
 
     teaching_method = st.selectbox("Teaching Method (macro activity)", teaching_methods)
-    micro_activity = st.selectbox("Micro-Activity", micro_activities)
+    micro_activity = st.selectbox("Micro-Activity (what students actually do)", micro_activities)
     summative_assessment = st.selectbox(
-        "Summative Assessment (assessment method)", summative_assessments
+        "Summative Assessment (what we grade on)", summative_assessments
     )
 
     difficulty = st.selectbox(
@@ -341,7 +341,7 @@ if assessed_flag:
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # Dynamic questions section
+    # Dynamic questions section: add as many as needed, each becomes a row
     st.markdown("<div class='section-box'>", unsafe_allow_html=True)
     st.subheader("Exam Question(s)")
 
@@ -501,7 +501,7 @@ with st.expander("Learning Objective Visual Dashboard - Summary", expanded=False
         else:
             df = pd.read_excel(FILE, sheet_name="tblLO_Mapping")
 
-            # --- Mapping helpers ---
+            # --- Helpers ---
             def normalize_bloom(level):
                 level = str(level).strip().lower()
                 mapping = {
@@ -517,18 +517,22 @@ with st.expander("Learning Objective Visual Dashboard - Summary", expanded=False
                         return label
                 return "Other"
 
-            def get_alignment(micro_value, summative_value):
-                a = str(micro_value).strip()
-                m = str(summative_value).strip()
-                if a and m:
-                    return "Aligned"
-                elif a:
-                    return "Taught_only"
-                elif m:
-                    return "Tested_only"
-                return "Ignored"
+            def alignment_label(micro_value, summative_value):
+                micro = str(micro_value).strip()
+                summ = str(summative_value).strip()
+                has_micro = micro not in ("", "Unspecified", "nan")
+                has_summ = summ not in ("", "Unspecified", "nan")
 
-            # Derived categories
+                if has_micro and has_summ:
+                    return "Taught & Assessed"
+                elif has_micro:
+                    return "Taught only"
+                elif has_summ:
+                    return "Assessed only"
+                else:
+                    return "Neither"
+
+            # --- Derived categories ---
             df["BloomCategory"] = df["BloomLevel"].apply(normalize_bloom)
             df["TeachingMethodCategory"] = df["Activity"].fillna("Unspecified")
             df["MicroActivityCategory"] = df.get(
@@ -536,47 +540,52 @@ with st.expander("Learning Objective Visual Dashboard - Summary", expanded=False
             ).fillna("Unspecified")
             df["SummativeCategory"] = df["AssessmentMethod"].fillna("Unspecified")
             df["AlignmentStatus"] = df.apply(
-                lambda row: get_alignment(
+                lambda row: alignment_label(
                     row.get("MicroActivity", ""),
                     row.get("AssessmentMethod", ""),
                 ),
                 axis=1,
             )
 
-            df = df[df["AlignmentStatus"] != "Ignored"]
+            # Remove rows with no course at all
+            df = df[~df["CourseName"].isna()]
+
+            # Keep rows that have at least some teaching/testing info
+            df = df[df["AlignmentStatus"] != "Neither"]
 
             if df.empty:
                 st.info(
-                    "No mapped teaching and assessment data to display yet."
+                    "No mapped teaching / assessment data available yet to build visuals."
                 )
             else:
-                # ---- FILTERS (always show all possible values) ----
+                # -------------------------------
+                # Filters (always show all values)
+                # -------------------------------
                 all_years = sorted(refs["courses"]["year"].dropna().unique())
                 year_options = ["All years"] + [str(y) for y in all_years]
-                selected_year = st.selectbox("Select Year", year_options)
+                selected_year = st.selectbox("Filter by Year", year_options)
 
                 if selected_year == "All years":
                     all_semesters = sorted(
                         refs["courses"]["semester"].dropna().unique()
                     )
                 else:
-                    # semesters mapped to this year in course catalog
                     all_semesters = sorted(
-                        refs["courses"]
-                        .query("year == @selected_year")
-                        ["semester"]
+                        refs["courses"][
+                            refs["courses"]["year"].astype(str) == selected_year
+                        ]["semester"]
                         .dropna()
                         .unique()
                     )
 
                 semester_options = ["All semesters"] + [str(s) for s in all_semesters]
                 selected_semester = st.selectbox(
-                    "Select Semester", semester_options
+                    "Filter by Semester", semester_options
                 )
 
                 base_df = df.copy()
-
                 filtered_df = base_df.copy()
+
                 if selected_year != "All years":
                     filtered_df = filtered_df[
                         filtered_df["Year"].astype(str) == selected_year
@@ -586,33 +595,116 @@ with st.expander("Learning Objective Visual Dashboard - Summary", expanded=False
                         filtered_df["Semester"].astype(str) == selected_semester
                     ]
 
-                # If no data for that filter yet, fall back to full mapped dataset
                 if filtered_df.empty:
                     st.info(
                         "No records for this filter yet. Showing all mapped records instead."
                     )
                     filtered_df = base_df
 
-                # --- Charts ---
-                st.markdown("### Bloom Level Distribution")
-                st.bar_chart(filtered_df["BloomCategory"].value_counts())
+                bloom_order = [
+                    "Remember",
+                    "Understand",
+                    "Apply",
+                    "Analyze",
+                    "Evaluate",
+                    "Create",
+                    "Other",
+                ]
 
-                st.markdown("### Teaching Methods (macro) Distribution")
-                st.bar_chart(filtered_df["TeachingMethodCategory"].value_counts())
+                # --------------------------------------
+                # 1. Overall Alignment: Teach vs Test
+                # --------------------------------------
+                st.markdown("### 1. Overall Alignment: Teach vs Test")
+                align_counts = filtered_df["AlignmentStatus"].value_counts()
+                st.bar_chart(align_counts)
 
-                st.markdown("### Micro-Activities Distribution")
-                st.bar_chart(filtered_df["MicroActivityCategory"].value_counts())
-
-                st.markdown("### Summative Assessments Distribution")
-                st.bar_chart(filtered_df["SummativeCategory"].value_counts())
-
-                st.markdown("### Micro vs Summative Alignment")
-                fig3, ax3 = plt.subplots()
-                filtered_df["AlignmentStatus"].value_counts().plot(
-                    kind="pie", autopct="%1.1f%%", ax=ax3
+                # --------------------------------------
+                # 2. Alignment by Bloom Level
+                # --------------------------------------
+                st.markdown("### 2. Alignment by Bloom Level")
+                ab = (
+                    filtered_df.groupby(["BloomCategory", "AlignmentStatus"])
+                    .size()
+                    .reset_index(name="Count")
                 )
-                ax3.set_ylabel("")
-                st.pyplot(fig3)
+                if ab.empty:
+                    st.info("Not enough data yet to show Bloom × Alignment.")
+                else:
+                    ab_pivot = (
+                        ab.pivot(
+                            index="BloomCategory",
+                            columns="AlignmentStatus",
+                            values="Count",
+                        )
+                        .fillna(0)
+                        .reindex(index=bloom_order)
+                    )
+                    st.bar_chart(ab_pivot)
+
+                # --------------------------------------
+                # 3. Alignment by Micro-Activity (Top 8)
+                # --------------------------------------
+                st.markdown("### 3. Alignment by Micro-Activity (Top 8)")
+                am = (
+                    filtered_df.groupby(["MicroActivityCategory", "AlignmentStatus"])
+                    .size()
+                    .reset_index(name="Count")
+                )
+                if am.empty:
+                    st.info(
+                        "No Micro-Activity alignment patterns to display yet."
+                    )
+                else:
+                    # pick top 8 micro-activities by total count
+                    top_micro = (
+                        am.groupby("MicroActivityCategory")["Count"]
+                        .sum()
+                        .sort_values(ascending=False)
+                        .head(8)
+                        .index
+                    )
+                    am = am[am["MicroActivityCategory"].isin(top_micro)]
+                    am_pivot = (
+                        am.pivot(
+                            index="MicroActivityCategory",
+                            columns="AlignmentStatus",
+                            values="Count",
+                        )
+                        .fillna(0)
+                    )
+                    st.bar_chart(am_pivot)
+
+                # --------------------------------------
+                # 4. Alignment by Summative Assessment Type (Top 8)
+                # --------------------------------------
+                st.markdown("### 4. Alignment by Summative Assessment Type (Top 8)")
+                as_ = (
+                    filtered_df.groupby(["SummativeCategory", "AlignmentStatus"])
+                    .size()
+                    .reset_index(name="Count")
+                )
+                if as_.empty:
+                    st.info(
+                        "No Summative Assessment alignment patterns to display yet."
+                    )
+                else:
+                    top_summ = (
+                        as_.groupby("SummativeCategory")["Count"]
+                        .sum()
+                        .sort_values(ascending=False)
+                        .head(8)
+                        .index
+                    )
+                    as_ = as_[as_["SummativeCategory"].isin(top_summ)]
+                    as_pivot = (
+                        as_.pivot(
+                            index="SummativeCategory",
+                            columns="AlignmentStatus",
+                            values="Count",
+                        )
+                        .fillna(0)
+                    )
+                    st.bar_chart(as_pivot)
 
     except Exception as e:
         st.error(f"Error generating dashboard: {e}")
