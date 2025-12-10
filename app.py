@@ -517,46 +517,19 @@ with st.expander("Learning Objective Visual Dashboard - Summary", expanded=False
                         return label
                 return "Other"
 
-            def alignment_label(micro_value, summative_value):
-                micro = str(micro_value).strip()
-                summ = str(summative_value).strip()
-                has_micro = micro not in ("", "Unspecified", "nan")
-                has_summ = summ not in ("", "Unspecified", "nan")
-
-                if has_micro and has_summ:
-                    return "Taught & Assessed"
-                elif has_micro:
-                    return "Taught only"
-                elif has_summ:
-                    return "Assessed only"
-                else:
-                    return "Neither"
-
-            # --- Derived categories ---
+            # Derived categories
             df["BloomCategory"] = df["BloomLevel"].apply(normalize_bloom)
             df["TeachingMethodCategory"] = df["Activity"].fillna("Unspecified")
             df["MicroActivityCategory"] = df.get(
                 "MicroActivity", pd.Series(index=df.index)
             ).fillna("Unspecified")
             df["SummativeCategory"] = df["AssessmentMethod"].fillna("Unspecified")
-            df["AlignmentStatus"] = df.apply(
-                lambda row: alignment_label(
-                    row.get("MicroActivity", ""),
-                    row.get("AssessmentMethod", ""),
-                ),
-                axis=1,
-            )
 
-            # Remove rows with no course at all
+            # Remove rows with no course
             df = df[~df["CourseName"].isna()]
 
-            # Keep rows that have at least some teaching/testing info
-            df = df[df["AlignmentStatus"] != "Neither"]
-
             if df.empty:
-                st.info(
-                    "No mapped teaching / assessment data available yet to build visuals."
-                )
+                st.info("No mapped data available yet to build visuals.")
             else:
                 # -------------------------------
                 # Filters (always show all values)
@@ -612,99 +585,113 @@ with st.expander("Learning Objective Visual Dashboard - Summary", expanded=False
                 ]
 
                 # --------------------------------------
-                # 1. Overall Alignment: Teach vs Test
+                # 1. Bloom Level Coverage
                 # --------------------------------------
-                st.markdown("### 1. Overall Alignment: Teach vs Test")
-                align_counts = filtered_df["AlignmentStatus"].value_counts()
-                st.bar_chart(align_counts)
+                st.markdown("### 1. Bloom Level Coverage (All mapped LOs)")
+                bloom_counts = (
+                    filtered_df["BloomCategory"]
+                    .value_counts()
+                    .reindex(bloom_order)
+                    .fillna(0)
+                )
+                st.bar_chart(bloom_counts)
 
                 # --------------------------------------
-                # 2. Alignment by Bloom Level
+                # 2. Bloom × Teaching Method
                 # --------------------------------------
-                st.markdown("### 2. Alignment by Bloom Level")
-                ab = (
-                    filtered_df.groupby(["BloomCategory", "AlignmentStatus"])
+                st.markdown("### 2. Bloom Levels by Teaching Method")
+                tm = (
+                    filtered_df.groupby(["TeachingMethodCategory", "BloomCategory"])
                     .size()
                     .reset_index(name="Count")
                 )
-                if ab.empty:
-                    st.info("Not enough data yet to show Bloom × Alignment.")
+                if tm.empty:
+                    st.info("No teaching method data available yet.")
                 else:
-                    ab_pivot = (
-                        ab.pivot(
-                            index="BloomCategory",
-                            columns="AlignmentStatus",
+                    tm_pivot = (
+                        tm.pivot(
+                            index="TeachingMethodCategory",
+                            columns="BloomCategory",
                             values="Count",
                         )
                         .fillna(0)
-                        .reindex(index=bloom_order)
+                        .reindex(columns=bloom_order)
                     )
-                    st.bar_chart(ab_pivot)
+                    st.bar_chart(tm_pivot)
 
                 # --------------------------------------
-                # 3. Alignment by Micro-Activity (Top 8)
+                # 3. Bloom × Micro-Activity (Top 8)
                 # --------------------------------------
-                st.markdown("### 3. Alignment by Micro-Activity (Top 8)")
-                am = (
-                    filtered_df.groupby(["MicroActivityCategory", "AlignmentStatus"])
-                    .size()
-                    .reset_index(name="Count")
-                )
-                if am.empty:
-                    st.info(
-                        "No Micro-Activity alignment patterns to display yet."
-                    )
+                st.markdown("### 3. Bloom Levels by Micro-Activity (Top 8)")
+                ma_df = filtered_df[
+                    filtered_df["MicroActivityCategory"] != "Unspecified"
+                ].copy()
+
+                if ma_df.empty:
+                    st.info("No micro-activity data available yet.")
                 else:
-                    # pick top 8 micro-activities by total count
-                    top_micro = (
-                        am.groupby("MicroActivityCategory")["Count"]
-                        .sum()
+                    ma_counts = (
+                        ma_df.groupby("MicroActivityCategory")
+                        .size()
                         .sort_values(ascending=False)
-                        .head(8)
-                        .index
                     )
-                    am = am[am["MicroActivityCategory"].isin(top_micro)]
-                    am_pivot = (
-                        am.pivot(
+                    top_ma = ma_counts.head(8).index
+
+                    ma_top = ma_df[ma_df["MicroActivityCategory"].isin(top_ma)]
+                    ma = (
+                        ma_top.groupby(
+                            ["MicroActivityCategory", "BloomCategory"]
+                        )
+                        .size()
+                        .reset_index(name="Count")
+                    )
+                    ma_pivot = (
+                        ma.pivot(
                             index="MicroActivityCategory",
-                            columns="AlignmentStatus",
+                            columns="BloomCategory",
                             values="Count",
                         )
                         .fillna(0)
+                        .reindex(columns=bloom_order)
                     )
-                    st.bar_chart(am_pivot)
+                    st.bar_chart(ma_pivot)
 
                 # --------------------------------------
-                # 4. Alignment by Summative Assessment Type (Top 8)
+                # 4. Bloom × Summative Assessment (Top 8)
                 # --------------------------------------
-                st.markdown("### 4. Alignment by Summative Assessment Type (Top 8)")
-                as_ = (
-                    filtered_df.groupby(["SummativeCategory", "AlignmentStatus"])
-                    .size()
-                    .reset_index(name="Count")
-                )
-                if as_.empty:
-                    st.info(
-                        "No Summative Assessment alignment patterns to display yet."
-                    )
+                st.markdown("### 4. Bloom Levels by Summative Assessment (Top 8)")
+                sa_df = filtered_df[
+                    filtered_df["SummativeCategory"] != "Unspecified"
+                ].copy()
+
+                if sa_df.empty:
+                    st.info("No summative assessment data available yet.")
                 else:
-                    top_summ = (
-                        as_.groupby("SummativeCategory")["Count"]
-                        .sum()
+                    sa_counts = (
+                        sa_df.groupby("SummativeCategory")
+                        .size()
                         .sort_values(ascending=False)
-                        .head(8)
-                        .index
                     )
-                    as_ = as_[as_["SummativeCategory"].isin(top_summ)]
-                    as_pivot = (
-                        as_.pivot(
+                    top_sa = sa_counts.head(8).index
+
+                    sa_top = sa_df[sa_df["SummativeCategory"].isin(top_sa)]
+                    sa = (
+                        sa_top.groupby(
+                            ["SummativeCategory", "BloomCategory"]
+                        )
+                        .size()
+                        .reset_index(name="Count")
+                    )
+                    sa_pivot = (
+                        sa.pivot(
                             index="SummativeCategory",
-                            columns="AlignmentStatus",
+                            columns="BloomCategory",
                             values="Count",
                         )
                         .fillna(0)
+                        .reindex(columns=bloom_order)
                     )
-                    st.bar_chart(as_pivot)
+                    st.bar_chart(sa_pivot)
 
     except Exception as e:
         st.error(f"Error generating dashboard: {e}")
