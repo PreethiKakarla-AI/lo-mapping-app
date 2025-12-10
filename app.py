@@ -138,6 +138,9 @@ def hierarchy_select(label, flat_df):
 # ==========================================
 # Load Reference Data
 # ==========================================
+if st.button("Reload reference tables from Excel"):
+    load_reference_data.clear()  # clear cached copy
+
 refs = load_reference_data()
 nbeo_conditions = build_hierarchy(refs["nbeo"], category="Condition")
 nbeo_disciplines = build_hierarchy(refs["nbeo"], category="Discipline")
