@@ -11,7 +11,6 @@ warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 # Streamlit Config & File Path
 # ==========================================
 st.set_page_config(page_title="Learning Objective Mapping Form", layout="centered")
-# Excel file is in the same directory as app.py
 FILE = Path("LOreferenceData_final_formfeedversion2.xlsx")
 
 # ==========================================
@@ -113,7 +112,6 @@ def hierarchy_select(label, flat_df):
         for col in flat_df.columns
         if col.startswith("Level") and col.endswith("_Title")
     ]
-    selections = []
     filtered_df = flat_df.copy()
 
     for level in levels:
@@ -121,7 +119,6 @@ def hierarchy_select(label, flat_df):
         if not options:
             break
         selection = st.selectbox(f"{label} - {level}", options)
-        selections.append(selection)
         filtered_df = filtered_df[filtered_df[level] == selection]
 
     if not filtered_df.empty:
@@ -139,7 +136,7 @@ def hierarchy_select(label, flat_df):
 # Load Reference Data
 # ==========================================
 if st.button("Reload reference tables from Excel"):
-    load_reference_data.clear()  # clear cached copy
+    load_reference_data.clear()
 
 refs = load_reference_data()
 nbeo_conditions = build_hierarchy(refs["nbeo"], category="Condition")
@@ -348,15 +345,12 @@ if assessed_flag:
     st.markdown("<div class='section-box'>", unsafe_allow_html=True)
     st.subheader("Exam Question(s)")
 
-    # Initialise question count in session state
     if "question_count" not in st.session_state:
         st.session_state.question_count = 1
 
-    # Button to add another question input
     if st.button("Add another question"):
         st.session_state.question_count += 1
 
-    # Render one text_input per question
     question_texts = []
     for i in range(st.session_state.question_count):
         q = st.text_input(
@@ -365,10 +359,10 @@ if assessed_flag:
         )
         question_texts.append(q)
 
+    questions = [q.strip() for q in question_texts if q.strip()]
+
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # Build list of non-empty questions
-    questions = [q.strip() for q in question_texts if q.strip()]
 else:
     justification = st.text_area(
         "Justification for not assessing this Learning Objective"
@@ -387,7 +381,6 @@ if st.button("Save this Learning Objective"):
         target_sheet = "tblLO_Mapping"
 
         if assessed_flag:
-            # one row per question
             for question in questions:
                 new_rows.append(
                     {
@@ -450,7 +443,6 @@ if st.button("Save this Learning Objective"):
                     )
                     write_mode = "a"
                 except ValueError:
-                    # File exists but sheet does not
                     combined = pd.DataFrame(new_rows)
                     write_mode = "a"
             else:
@@ -536,7 +528,7 @@ with st.expander("Learning Objective Visual Dashboard - Summary", expanded=False
                     return "Tested_only"
                 return "Ignored"
 
-            # Derived categories based on new fields
+            # Derived categories
             df["BloomCategory"] = df["BloomLevel"].apply(normalize_bloom)
             df["TeachingMethodCategory"] = df["Activity"].fillna("Unspecified")
             df["MicroActivityCategory"] = df.get(
@@ -545,7 +537,8 @@ with st.expander("Learning Objective Visual Dashboard - Summary", expanded=False
             df["SummativeCategory"] = df["AssessmentMethod"].fillna("Unspecified")
             df["AlignmentStatus"] = df.apply(
                 lambda row: get_alignment(
-                    row.get("MicroActivity", ""), row.get("AssessmentMethod", "")
+                    row.get("MicroActivity", ""),
+                    row.get("AssessmentMethod", ""),
                 ),
                 axis=1,
             )
@@ -557,50 +550,69 @@ with st.expander("Learning Objective Visual Dashboard - Summary", expanded=False
                     "No mapped teaching and assessment data to display yet."
                 )
             else:
-                # --- Filters ---
-                st.subheader("Filter by Year and Semester")
-                year_options = sorted(df["Year"].dropna().unique())
+                # ---- FILTERS (always show all possible values) ----
+                all_years = sorted(refs["courses"]["year"].dropna().unique())
+                year_options = ["All years"] + [str(y) for y in all_years]
                 selected_year = st.selectbox("Select Year", year_options)
 
-                semester_options = sorted(
-                    df[df["Year"] == selected_year]["Semester"]
-                    .dropna()
-                    .unique()
-                )
+                if selected_year == "All years":
+                    all_semesters = sorted(
+                        refs["courses"]["semester"].dropna().unique()
+                    )
+                else:
+                    # semesters mapped to this year in course catalog
+                    all_semesters = sorted(
+                        refs["courses"]
+                        .query("year == @selected_year")
+                        ["semester"]
+                        .dropna()
+                        .unique()
+                    )
+
+                semester_options = ["All semesters"] + [str(s) for s in all_semesters]
                 selected_semester = st.selectbox(
                     "Select Semester", semester_options
                 )
 
-                filtered_df = df[
-                    (df["Year"] == selected_year)
-                    & (df["Semester"] == selected_semester)
-                ]
+                base_df = df.copy()
 
+                filtered_df = base_df.copy()
+                if selected_year != "All years":
+                    filtered_df = filtered_df[
+                        filtered_df["Year"].astype(str) == selected_year
+                    ]
+                if selected_semester != "All semesters":
+                    filtered_df = filtered_df[
+                        filtered_df["Semester"].astype(str) == selected_semester
+                    ]
+
+                # If no data for that filter yet, fall back to full mapped dataset
                 if filtered_df.empty:
                     st.info(
-                        "No records for the selected Year and Semester."
+                        "No records for this filter yet. Showing all mapped records instead."
                     )
-                else:
-                    # --- Charts ---
-                    st.markdown("### Bloom Level Distribution")
-                    st.bar_chart(filtered_df["BloomCategory"].value_counts())
+                    filtered_df = base_df
 
-                    st.markdown("### Teaching Method (macro) Distribution")
-                    st.bar_chart(filtered_df["TeachingMethodCategory"].value_counts())
+                # --- Charts ---
+                st.markdown("### Bloom Level Distribution")
+                st.bar_chart(filtered_df["BloomCategory"].value_counts())
 
-                    st.markdown("### Micro-Activity Distribution")
-                    st.bar_chart(filtered_df["MicroActivityCategory"].value_counts())
+                st.markdown("### Teaching Methods (macro) Distribution")
+                st.bar_chart(filtered_df["TeachingMethodCategory"].value_counts())
 
-                    st.markdown("### Summative Assessment Distribution")
-                    st.bar_chart(filtered_df["SummativeCategory"].value_counts())
+                st.markdown("### Micro-Activities Distribution")
+                st.bar_chart(filtered_df["MicroActivityCategory"].value_counts())
 
-                    st.markdown("### Micro vs Summative Alignment")
-                    fig3, ax3 = plt.subplots()
-                    filtered_df["AlignmentStatus"].value_counts().plot(
-                        kind="pie", autopct="%1.1f%%", ax=ax3
-                    )
-                    ax3.set_ylabel("")
-                    st.pyplot(fig3)
+                st.markdown("### Summative Assessments Distribution")
+                st.bar_chart(filtered_df["SummativeCategory"].value_counts())
+
+                st.markdown("### Micro vs Summative Alignment")
+                fig3, ax3 = plt.subplots()
+                filtered_df["AlignmentStatus"].value_counts().plot(
+                    kind="pie", autopct="%1.1f%%", ax=ax3
+                )
+                ax3.set_ylabel("")
+                st.pyplot(fig3)
 
     except Exception as e:
         st.error(f"Error generating dashboard: {e}")
