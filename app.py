@@ -11,8 +11,11 @@ warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 # Streamlit Config & File Path
 # ==========================================
 st.set_page_config(page_title="Learning Objective Mapping Form", layout="centered")
-BASE_DIR = Path("/Users/pritheekakarla/Library/CloudStorage/GoogleDrive-preethi4.kakarla@gmail.com/My Drive")
-FILE = BASE_DIR / "LO_Mapping" / "LOreferenceData_final_formfeedversion2.xlsx"
+FILE = Path(
+    "/Users/pritheekakarla/Library/CloudStorage/"
+    "GoogleDrive-preethi4.kakarla@gmail.com/My Drive/"
+    "LOreferenceData_final_formfeedversion2.xlsx"
+)
 
 # ==========================================
 # Custom CSS for Section Styling
