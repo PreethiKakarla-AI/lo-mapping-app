@@ -532,6 +532,14 @@ if st.button("Save this Learning Objective"):
             st.error(f"Error while saving to GitHub: {e}")
 
 # ==========================================
+# Data Controls for GitHub Reload
+# ==========================================
+st.markdown("### Data Controls")
+if st.button("Reload saved mappings from GitHub"):
+    load_mapping_table.clear()
+    st.success("Reloaded mapping table from GitHub. Scroll down to see updated data.")
+
+# ==========================================
 # Display Existing Mappings
 # ==========================================
 st.markdown("### Saved Learning Objectives")
