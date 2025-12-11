@@ -4,6 +4,9 @@ from pathlib import Path
 from openpyxl import load_workbook
 import warnings
 import matplotlib.pyplot as plt
+import requests
+import base64
+import io
 
 warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 
@@ -11,7 +14,69 @@ warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 # Streamlit Config & File Path
 # ==========================================
 st.set_page_config(page_title="Learning Objective Mapping Form", layout="centered")
-ILE = Path("LOreferenceData_final_formfeedversion2.xlsx")
+FILE = Path("LOreferenceData_final_formfeedversion2.xlsx")
+
+# ==========================================
+# GitHub settings from secrets
+# ==========================================
+GITHUB_TOKEN = st.secrets.get("GITHUB_TOKEN", None)
+GITHUB_REPO = st.secrets.get("GITHUB_REPO", None)  # e.g. "username/repo"
+GITHUB_BRANCH = st.secrets.get("GITHUB_BRANCH", "main")
+GITHUB_FILE_PATH = st.secrets.get("GITHUB_FILE_PATH", "tblLO_Mapping.csv")
+
+
+def get_github_file(token, repo, path, branch):
+    """Read a file from GitHub (returns content bytes, sha)."""
+    if not token or not repo or not path:
+        return None, None
+    url = f"https://api.github.com/repos/{repo}/contents/{path}?ref={branch}"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+    }
+    resp = requests.get(url, headers=headers)
+    if resp.status_code == 200:
+        data = resp.json()
+        content = base64.b64decode(data["content"])
+        sha = data["sha"]
+        return content, sha
+    if resp.status_code == 404:
+        return None, None
+    raise RuntimeError(f"GitHub GET error {resp.status_code}: {resp.text}")
+
+
+def put_github_file(token, repo, path, branch, content_bytes, message, sha=None):
+    """Create or update a file in GitHub."""
+    if not token or not repo or not path:
+        raise RuntimeError("GitHub settings are missing in Streamlit secrets.")
+    url = f"https://api.github.com/repos/{repo}/contents/{path}"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+    }
+    payload = {
+        "message": message,
+        "content": base64.b64encode(content_bytes).decode("utf-8"),
+        "branch": branch,
+    }
+    if sha:
+        payload["sha"] = sha
+    resp = requests.put(url, headers=headers, json=payload)
+    if resp.status_code not in (200, 201):
+        raise RuntimeError(f"GitHub PUT error {resp.status_code}: {resp.text}")
+    return resp.json()
+
+
+@st.cache_data
+def load_mapping_table():
+    """Load the LO mapping table from GitHub CSV."""
+    content, _ = get_github_file(
+        GITHUB_TOKEN, GITHUB_REPO, GITHUB_FILE_PATH, GITHUB_BRANCH
+    )
+    if content is None:
+        return pd.DataFrame()
+    return pd.read_csv(io.StringIO(content.decode("utf-8")))
+
 
 # ==========================================
 # Custom CSS for Section Styling
@@ -41,7 +106,7 @@ st.markdown(
 )
 
 # ==========================================
-# Reference Data Caching
+# Reference Data Caching (Excel for lookups)
 # ==========================================
 @st.cache_data
 def load_reference_data():
@@ -281,7 +346,9 @@ with st.container():
     ]
 
     teaching_method = st.selectbox("Teaching Method (macro activity)", teaching_methods)
-    micro_activity = st.selectbox("Micro-Activity (what students actually do)", micro_activities)
+    micro_activity = st.selectbox(
+        "Micro-Activity (what students actually do)", micro_activities
+    )
     summative_assessment = st.selectbox(
         "Summative Assessment (what we grade on)", summative_assessments
     )
@@ -369,7 +436,7 @@ else:
     )
 
 # ==========================================
-# Save Section
+# Save Section (GitHub CSV)
 # ==========================================
 if st.button("Save this Learning Objective"):
     if not learning_objective:
@@ -378,7 +445,6 @@ if st.button("Save this Learning Objective"):
         st.error("At least one question is required when LO is assessed.")
     else:
         new_rows = []
-        target_sheet = "tblLO_Mapping"
 
         if assessed_flag:
             for question in questions:
@@ -432,61 +498,51 @@ if st.button("Save this Learning Objective"):
                 }
             )
 
-        # Build combined dataframe and write safely
         try:
-            if FILE.exists():
-                try:
-                    existing = pd.read_excel(FILE, sheet_name=target_sheet)
-                    combined = pd.concat(
-                        [existing, pd.DataFrame(new_rows)],
-                        ignore_index=True,
-                    )
-                    write_mode = "a"
-                except ValueError:
-                    combined = pd.DataFrame(new_rows)
-                    write_mode = "a"
+            # Load existing mapping from GitHub
+            existing_df = load_mapping_table()
+            if not existing_df.empty:
+                combined = pd.concat(
+                    [existing_df, pd.DataFrame(new_rows)],
+                    ignore_index=True,
+                )
             else:
                 combined = pd.DataFrame(new_rows)
-                write_mode = "w"
-        except Exception:
-            combined = pd.DataFrame(new_rows)
-            write_mode = "w"
 
-        try:
-            if write_mode == "a" and FILE.exists():
-                with pd.ExcelWriter(
-                    FILE,
-                    engine="openpyxl",
-                    mode="a",
-                    if_sheet_exists="replace",
-                ) as writer:
-                    combined.to_excel(
-                        writer, sheet_name=target_sheet, index=False
-                    )
-            else:
-                with pd.ExcelWriter(
-                    FILE,
-                    engine="openpyxl",
-                    mode="w",
-                ) as writer:
-                    combined.to_excel(
-                        writer, sheet_name=target_sheet, index=False
-                    )
+            csv_bytes = combined.to_csv(index=False).encode("utf-8")
 
-            st.success(f"Saved {len(new_rows)} row(s) to {target_sheet}.")
+            # Get current sha (if file already exists)
+            _, current_sha = get_github_file(
+                GITHUB_TOKEN, GITHUB_REPO, GITHUB_FILE_PATH, GITHUB_BRANCH
+            )
+
+            put_github_file(
+                GITHUB_TOKEN,
+                GITHUB_REPO,
+                GITHUB_FILE_PATH,
+                GITHUB_BRANCH,
+                csv_bytes,
+                message="Update LO mapping from Streamlit app",
+                sha=current_sha,
+            )
+
+            load_mapping_table.clear()
+            st.success(f"Saved {len(new_rows)} row(s) to GitHub mapping file.")
         except Exception as e:
-            st.error(f"Error while saving: {e}")
+            st.error(f"Error while saving to GitHub: {e}")
 
 # ==========================================
 # Display Existing Mappings
 # ==========================================
-if FILE.exists():
-    try:
-        existing_df = pd.read_excel(FILE, sheet_name="tblLO_Mapping")
-        st.markdown("### Saved Learning Objectives")
+st.markdown("### Saved Learning Objectives")
+try:
+    existing_df = load_mapping_table()
+    if existing_df.empty:
+        st.info("No mappings saved yet.")
+    else:
         st.dataframe(existing_df)
-    except Exception:
-        pass
+except Exception as e:
+    st.error(f"Error loading existing mappings: {e}")
 
 # ==========================================
 # Learning Objective Visual Dashboard - Summary
@@ -494,13 +550,12 @@ if FILE.exists():
 st.markdown("---")
 with st.expander("Learning Objective Visual Dashboard - Summary", expanded=False):
     try:
-        if not FILE.exists():
+        df = load_mapping_table()
+        if df.empty:
             st.info(
                 "No saved data yet. Save at least one Learning Objective to view the dashboard."
             )
         else:
-            df = pd.read_excel(FILE, sheet_name="tblLO_Mapping")
-
             # --- Helpers ---
             def normalize_bloom(level):
                 level = str(level).strip().lower()
