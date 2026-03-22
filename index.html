@@ -2,479 +2,559 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Learning Objective Mapping Form</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
- *{box-sizing:border-box;margin:0;padding:0}
- body{font-family:'Segoe UI',sans-serif;background:#f0f4ff;color:#222;padding:20px}
- h1{color:#3366cc;font-size:26px;margin-bottom:20px;text-align:center}
- .section{background:#fff;border-left:5px solid #3366cc;border-radius:8px;padding:20px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.07)}
- .section h2{color:#3366cc;font-size:18px;margin-bottom:16px}
- .field{margin-bottom:14px}
- label{display:block;font-weight:600;color:#333;margin-bottom:5px;font-size:14px}
- select,input,textarea{width:100%;padding:9px 12px;border:1px solid #ccd;border-radius:6px;font-size:14px;background:#fff;color:#222}
- select:focus,input:focus,textarea:focus{outline:2px solid #3366cc;border-color:#3366cc}
- textarea{resize:vertical;min-height:80px}
- .row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
- .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
- button{padding:10px 22px;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600;transition:background 0.2s}
- .btn-primary{background:#3366cc;color:#fff}.btn-primary:hover{background:#2255bb}
- .btn-secondary{background:#e8eef8;color:#3366cc;border:1px solid #3366cc}.btn-secondary:hover{background:#dde8ff}
- .btn-success{background:#2a7a2a;color:#fff}.btn-success:hover{background:#1e5e1e}
- .btn-bar{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
- .msg{padding:10px 16px;border-radius:6px;margin-bottom:16px;font-size:14px}
- .msg.success{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
- .msg.error{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
- .msg.info{background:#d1ecf1;color:#0c5460;border:1px solid #bee5eb}
- #questions-container .q-row{display:flex;gap:10px;align-items:center;margin-bottom:8px}
- #questions-container .q-row input{flex:1}
- #questions-container .q-row button{padding:6px 12px;flex-shrink:0}
- table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
- th{background:#3366cc;color:#fff;padding:8px 10px;text-align:left}
- td{padding:7px 10px;border-bottom:1px solid #e0e6f0}
- tr:nth-child(even) td{background:#f5f8ff}
- .chart-wrap{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:16px}
- canvas{max-height:280px}
- .hidden{display:none}
- details summary{cursor:pointer;font-weight:700;color:#3366cc;font-size:16px;padding:10px 0}
- .config-notice{background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:12px;font-size:13px;margin-bottom:16px}
- @media(max-width:700px){.row,.row3,.chart-wrap{grid-template-columns:1fr}}
+/* ---- Streamlit-identical base ---- */
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Source Sans Pro',sans-serif;
+  font-size:16px;
+  color:#31333f;
+  background:#ffffff;
+  line-height:1.6;
+}
+/* Centered layout like Streamlit layout="centered" */
+.main-container{
+  max-width:730px;
+  margin:0 auto;
+  padding:2rem 1rem 4rem 1rem;
+}
+/* Title style from app.py .title-style */
+.title-style{
+  font-size:28px;
+  font-weight:700;
+  color:#3366cc;
+  margin-bottom:1.5rem;
+}
+/* Section box from app.py .section-box */
+.section-box{
+  background-color:#f5f8ff;
+  border-left:5px solid #3366cc;
+  padding:1rem;
+  margin-bottom:1rem;
+  border-radius:6px;
+}
+/* Subheader like st.subheader */
+.subheader{
+  font-size:1.25rem;
+  font-weight:600;
+  color:#31333f;
+  margin-bottom:0.75rem;
+  margin-top:0.25rem;
+}
+/* Labels like Streamlit widget labels */
+label.st-label{
+  display:block;
+  font-weight:600;
+  color:#31333f;
+  font-size:14px;
+  margin-bottom:4px;
+}
+/* Streamlit-style inputs/selects/textareas */
+input[type="text"],input[type="number"],input[type="password"],select,textarea{
+  width:100%;
+  padding:0.375rem 0.75rem;
+  border:1px solid #ccc;
+  border-radius:4px;
+  font-family:'Source Sans Pro',sans-serif;
+  font-size:14px;
+  color:#31333f;
+  background:#fff;
+  transition:border-color 0.15s;
+  appearance:none;
+  -webkit-appearance:none;
+}
+select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 10px center;
+  padding-right:30px;
+}
+input:focus,select:focus,textarea:focus{
+  outline:none;
+  border-color:#3366cc;
+  box-shadow:0 0 0 2px rgba(51,102,204,0.2);
+}
+textarea{resize:vertical;min-height:100px}
+/* Streamlit column grid */
+.cols-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:0.75rem}
+.cols-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:0.75rem}
+.cols-1{margin-bottom:0.75rem}
+/* Streamlit red button */
+button.st-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-family:'Source Sans Pro',sans-serif;
+  font-weight:400;
+  font-size:14px;
+  padding:0.375rem 0.75rem;
+  border-radius:4px;
+  border:1px solid transparent;
+  cursor:pointer;
+  transition:background 0.15s,border-color 0.15s;
+  white-space:nowrap;
+}
+button.st-btn-primary{
+  background-color:#ff4b4b;
+  color:#fff;
+  border-color:#ff4b4b;
+}
+button.st-btn-primary:hover{background-color:#e03c3c;border-color:#e03c3c}
+button.st-btn-secondary{
+  background-color:#fff;
+  color:#31333f;
+  border:1px solid #ccc;
+}
+button.st-btn-secondary:hover{background-color:#f0f2f6;border-color:#aaa}
+/* Info/success/error messages like Streamlit */
+.st-success{background:#d4edda;border-left:4px solid #28a745;padding:10px 14px;border-radius:4px;font-size:14px;color:#155724;margin:8px 0}
+.st-error{background:#fde8e8;border-left:4px solid #ff4b4b;padding:10px 14px;border-radius:4px;font-size:14px;color:#7a1212;margin:8px 0}
+.st-info{background:#e8f0fe;border-left:4px solid #3366cc;padding:10px 14px;border-radius:4px;font-size:14px;color:#1a3a8a;margin:8px 0}
+.st-warning{background:#fff3cd;border-left:4px solid #ffc107;padding:10px 14px;border-radius:4px;font-size:14px;color:#856404;margin:8px 0}
+/* Streamlit dataframe/table */
+.st-table-wrap{overflow-x:auto;margin-top:8px}
+table.st-df{width:100%;border-collapse:collapse;font-size:13px}
+table.st-df th{background:#f0f2f6;color:#31333f;font-weight:600;padding:6px 10px;text-align:left;border-bottom:1px solid #ddd}
+table.st-df td{padding:5px 10px;border-bottom:1px solid #eee;color:#31333f}
+table.st-df tr:nth-child(even) td{background:#f8f9fb}
+/* Streamlit expander */
+details.st-expander{border:1px solid #e6eaf1;border-radius:6px;margin-bottom:1rem;overflow:hidden}
+details.st-expander summary{
+  padding:0.6rem 1rem;
+  background:#f0f2f6;
+  cursor:pointer;
+  font-weight:600;
+  color:#31333f;
+  font-size:15px;
+  list-style:none;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+details.st-expander summary::before{content:"▶";font-size:11px;color:#888;transition:transform 0.2s}
+details.st-expander[open] summary::before{transform:rotate(90deg)}
+details.st-expander .expander-body{padding:1rem}
+/* Streamlit divider */
+.st-divider{border:none;border-top:1px solid #e6eaf1;margin:1rem 0}
+/* Question rows */
+.q-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.q-row input{flex:1}
+.q-row button{flex-shrink:0;padding:0.3rem 0.6rem;font-size:13px}
+/* Charts */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:0.5rem}
+.chart-item h4{font-size:14px;font-weight:600;color:#31333f;margin-bottom:6px}
+canvas{max-height:260px}
+/* Markdown h3 equivalent */
+.st-h3{font-size:1.1rem;font-weight:600;color:#31333f;margin:1rem 0 0.5rem 0}
+/* Hidden */
+.hidden{display:none!important}
+/* Reload/Save buttons row */
+.btn-row{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem}
+/* Config notice */
+.config-banner{background:#fff3cd;border-left:4px solid #ffc107;padding:10px 14px;border-radius:4px;font-size:14px;color:#856404;margin-bottom:1rem}
+@media(max-width:600px){.cols-2,.cols-3,.chart-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<h1>Learning Objective Mapping Form</h1>
+<div class="main-container">
 
-<!-- Config Banner -->
-<div class="config-notice" id="configNotice">
- <strong>Setup Required:</strong> Enter your GitHub token and repo info below to enable saving.
+<!-- Title -->
+<div class="title-style">Learning Objective Mapping Form</div>
+
+<!-- GitHub Config notice -->
+<div class="config-banner hidden" id="configBanner">
+  Setup Required: Enter your GitHub Token below to enable saving data.
 </div>
 
-<!-- GitHub Config -->
-<div class="section" id="configSection">
- <h2>GitHub Configuration</h2>
- <div class="row">
- <div class="field"><label>GitHub Token (saved in sessionStorage)</label><input type="password" id="ghToken" placeholder="ghp_..."/></div>
- <div class="field"><label>GitHub Repo (owner/repo)</label><input type="text" id="ghRepo" placeholder="PreethiKakarla-AI/lo-mapping-app"/></div>
- </div>
- <div class="row">
- <div class="field"><label>Branch</label><input type="text" id="ghBranch" value="main"/></div>
- <div class="field"><label>CSV File Path</label><input type="text" id="ghFilePath" value="tblLO_Mapping.csv"/></div>
- </div>
- <button class="btn-secondary" onclick="saveConfig()">Save Config</button>
+<!-- GitHub Config section-box -->
+<div class="section-box" id="configSection">
+  <div class="subheader">GitHub Configuration</div>
+  <div class="cols-2">
+    <div><label class="st-label">GitHub Token</label><input type="password" id="ghToken" placeholder="ghp_..."/></div>
+    <div><label class="st-label">GitHub Repo (owner/repo)</label><input type="text" id="ghRepo" placeholder="PreethiKakarla-AI/lo-mapping-app"/></div>
+  </div>
+  <div class="cols-2">
+    <div><label class="st-label">Branch</label><input type="text" id="ghBranch" value="main"/></div>
+    <div><label class="st-label">CSV File Path</label><input type="text" id="ghFilePath" value="tblLO_Mapping.csv"/></div>
+  </div>
+  <button class="st-btn st-btn-secondary" onclick="saveConfig()">Save Config</button>
+</div>
+
+<!-- Reload reference tables button (top of form like Streamlit) -->
+<div class="btn-row">
+  <button class="st-btn st-btn-secondary" onclick="alert('Reference tables reloaded.')">Reload reference tables from Excel</button>
 </div>
 
 <!-- Course Information -->
-<div class="section">
- <h2>Course Information</h2>
- <div class="row3">
- <div class="field"><label>Year</label><input type="number" id="year" value="2026" min="2020" max="2035"/></div>
- <div class="field"><label>Semester</label>
- <select id="semester">
- <option>Fall</option><option>Spring</option><option>Summer</option>
- </select>
- </div>
- <div class="field"><label>Type</label>
- <select id="courseType">
- <option>Lecture</option><option>Lab</option><option>Clinical</option>
- </select>
- </div>
- </div>
- <div class="row">
- <div class="field"><label>Course Name</label><input type="text" id="courseName" placeholder="e.g. Ocular Disease I"/></div>
- <div class="field"><label>Lecture Name</label><input type="text" id="lectureName" placeholder="e.g. Glaucoma Overview"/></div>
- </div>
+<div class="section-box">
+  <div class="subheader">Course Information</div>
+  <div class="cols-3">
+    <div><label class="st-label">Year</label><input type="number" id="year" value="2026" min="2020" max="2035"/></div>
+    <div><label class="st-label">Semester</label>
+      <select id="semester"><option>Fall</option><option>Spring</option><option>Summer</option></select>
+    </div>
+    <div><label class="st-label">Type</label>
+      <select id="courseType"><option>Lecture</option><option>Lab</option><option>Clinical</option></select>
+    </div>
+  </div>
+  <div class="cols-2">
+    <div><label class="st-label">Course Name</label><input type="text" id="courseName"/></div>
+    <div><label class="st-label">Lecture Name</label><input type="text" id="lectureName"/></div>
+  </div>
 </div>
 
 <!-- Learning Objective Details -->
-<div class="section">
- <h2>Learning Objective Details</h2>
- <div class="field"><label>Learning Objective</label><textarea id="learningObjective" rows="3" placeholder="Students will be able to..."></textarea></div>
- <div class="row3">
- <div class="field"><label>Bloom Level</label>
- <select id="bloomLevel">
- <option value="1 - Remember">1 - Remember</option>
- <option value="2 - Understand">2 - Understand</option>
- <option value="3 - Apply">3 - Apply</option>
- <option value="4 - Analyze">4 - Analyze</option>
- <option value="5 - Evaluate">5 - Evaluate</option>
- <option value="6 - Create">6 - Create</option>
- </select>
- </div>
- <div class="field"><label>Difficulty</label>
- <select id="difficulty">
- <option>Basic</option><option>Intermediate</option><option>Advanced</option>
- </select>
- </div>
- <div class="field"><label>Is Assessed?</label>
- <select id="isAssessed" onchange="toggleAssessed()">
- <option>Yes</option><option>No</option>
- </select>
- </div>
- </div>
- <div class="row">
- <div class="field"><label>Teaching Method (Macro Activity)</label>
- <select id="teachingMethod">
- <option>Direct instruction</option><option>Mini-lecture</option><option>Demonstration</option>
- <option>Video micro-lecture</option><option>Concept mapping</option><option>Example vs. Non-example</option>
- <option>Guided comparison</option><option>Visual explanation</option><option>Worked examples</option>
- <option>Skill demonstration</option><option>Simulation (SimLab)</option><option>Problem sets</option>
- <option>Case-Based Learning (CBL)</option><option>Problem-Based Learning (PBL)</option>
- <option>Team-Based Learning (TBL)</option><option>Diagnostic simulation</option>
- <option>Debate</option><option>Ranking rounds</option><option>Critique rounds</option>
- <option>Treatment reasoning</option><option>Protocol design</option><option>Project build</option>
- <option>Case plan development</option><option>Clinical pathway creation</option>
- </select>
- </div>
- <div class="field"><label>Micro-Activity (what students actually do)</label>
- <select id="microActivity">
- <option>Label diagrams</option><option>Match terms</option><option>Flash-classify</option>
- <option>Explain-back</option><option>Compare summaries</option>
- <option>Describe anatomy/phys differences</option><option>Follow algorithm</option>
- <option>Execute skill step</option><option>Perform skill (e.g., retinoscopy)</option>
- <option>Pattern recognition (OCT, VF, cornea)</option><option>Error spotting</option>
- <option>Annotate findings</option><option>Defend best treatment</option>
- <option>Rank options</option><option>Critique management plan</option>
- <option>Build treatment plan</option><option>Build protocol</option>
- <option>Propose diagnostic strategy</option>
- </select>
- </div>
- </div>
- <div class="field"><label>Summative Assessment (what we grade on)</label>
- <select id="summativeAssessment">
- <option>Knowledge MCQs</option><option>Definition SAQ</option><option>Labeling quiz</option>
- <option>Explanation MCQ</option><option>Short answer reasoning</option><option>Map completion scoring</option>
- <option>Applied MCQ</option><option>Numeric SAQ</option><option>OSCE skill station</option>
- <option>Case-based MCQ</option><option>Image interpretation MCQ</option>
- <option>OSCE diagnostic station</option><option>Treatment choice SAQ</option>
- <option>OSCE case justification</option><option>Chart audit Mini-CEX</option>
- <option>Workplace-Based Assessment (WBA)</option><option>Project scoring</option>
- <option>Protocol proposal rubric</option><option>Presentation assessment</option>
- <option>Scholarly project evaluation</option>
- </select>
- </div>
+<div class="section-box">
+  <div class="subheader">Learning Objective Details</div>
+  <div class="cols-1"><label class="st-label">Learning Objective</label><textarea id="learningObjective"></textarea></div>
+  <div class="cols-3">
+    <div><label class="st-label">Bloom Level</label>
+      <select id="bloomLevel">
+        <option value="1 - Remember">1 - Remember</option>
+        <option value="2 - Understand">2 - Understand</option>
+        <option value="3 - Apply">3 - Apply</option>
+        <option value="4 - Analyze">4 - Analyze</option>
+        <option value="5 - Evaluate">5 - Evaluate</option>
+        <option value="6 - Create">6 - Create</option>
+      </select>
+    </div>
+    <div><label class="st-label">Difficulty</label>
+      <select id="difficulty"><option>Basic</option><option>Intermediate</option><option>Advanced</option></select>
+    </div>
+    <div><label class="st-label">Is Assessed?</label>
+      <select id="isAssessed" onchange="toggleAssessed()"><option>Yes</option><option>No</option></select>
+    </div>
+  </div>
+  <div class="cols-2">
+    <div><label class="st-label">Teaching Method (macro activity)</label>
+      <select id="teachingMethod">
+        <option>Direct instruction</option><option>Mini-lecture</option><option>Demonstration</option>
+        <option>Video micro-lecture</option><option>Concept mapping</option><option>Example vs. Non-example</option>
+        <option>Guided comparison</option><option>Visual explanation</option><option>Worked examples</option>
+        <option>Skill demonstration</option><option>Simulation (SimLab)</option><option>Problem sets</option>
+        <option>Case-Based Learning (CBL)</option><option>Problem-Based Learning (PBL)</option>
+        <option>Team-Based Learning (TBL)</option><option>Diagnostic simulation</option>
+        <option>Debate</option><option>Ranking rounds</option><option>Critique rounds</option>
+        <option>Treatment reasoning</option><option>Protocol design</option><option>Project build</option>
+        <option>Case plan development</option><option>Clinical pathway creation</option>
+      </select>
+    </div>
+    <div><label class="st-label">Micro-Activity (what students actually do)</label>
+      <select id="microActivity">
+        <option>Label diagrams</option><option>Match terms</option><option>Flash-classify</option>
+        <option>Explain-back</option><option>Compare summaries</option>
+        <option>Describe anatomy/phys differences</option><option>Follow algorithm</option>
+        <option>Execute skill step</option><option>Perform skill (e.g., retinoscopy)</option>
+        <option>Pattern recognition (OCT, VF, cornea)</option><option>Error spotting</option>
+        <option>Annotate findings</option><option>Defend best treatment</option>
+        <option>Rank options</option><option>Critique management plan</option>
+        <option>Build treatment plan</option><option>Build protocol</option>
+        <option>Propose diagnostic strategy</option>
+      </select>
+    </div>
+  </div>
+  <div class="cols-1"><label class="st-label">Summative Assessment (what we grade on)</label>
+    <select id="summativeAssessment">
+      <option>Knowledge MCQs</option><option>Definition SAQ</option><option>Labeling quiz</option>
+      <option>Explanation MCQ</option><option>Short answer reasoning</option><option>Map completion scoring</option>
+      <option>Applied MCQ</option><option>Numeric SAQ</option><option>OSCE skill station</option>
+      <option>Case-based MCQ</option><option>Image interpretation MCQ</option>
+      <option>OSCE diagnostic station</option><option>Treatment choice SAQ</option>
+      <option>OSCE case justification</option><option>Chart audit Mini-CEX</option>
+      <option>Workplace-Based Assessment (WBA)</option><option>Project scoring</option>
+      <option>Protocol proposal rubric</option><option>Presentation assessment</option>
+      <option>Scholarly project evaluation</option>
+    </select>
+  </div>
 </div>
 
 <!-- Standards Mapping (shown when assessed = Yes) -->
-<div class="section hidden" id="standardsSection">
- <h2>Standards Mapping</h2>
- <div class="row">
- <div class="field"><label>NBEO Condition</label><input type="text" id="nbeoCondition" placeholder="e.g. C1.2.3 - Glaucoma"/></div>
- <div class="field"><label>NBEO Discipline</label><input type="text" id="nbeoDiscipline" placeholder="e.g. D2.1 - Ocular Health"/></div>
- </div>
- <div class="row">
- <div class="field"><label>ASCO Standard</label><input type="text" id="ascoStandard" placeholder="e.g. A3.1 - Patient Care"/></div>
- <div class="field"><label>UHCO Standard</label><input type="text" id="uhcoStandard" placeholder="e.g. U2.4 - Competency"/></div>
- </div>
- <div class="field"><label>ACOE Standard</label>
- <select id="acoeStandard">
- <option>2.8 Students must attain the defined set of clinical competencies established by the program.</option>
- <option>2.12 By graduation, students must be able to recognize and appropriately respond to ocular and systemic emergencies in optometric practice.</option>
- <option>2.13 By graduation, students must be able to identify and analyze relevant history and presenting problems for each patient.</option>
- <option>2.14 By graduation, students must be able to perform appropriate examinations and evaluate findings to reach an accurate diagnosis.</option>
- <option>2.15 By graduation, students must be able to formulate and justify management plans, understanding risks and benefits of options.</option>
- <option>2.16 By graduation, students must be able to provide clear, relevant patient education and counseling.</option>
- <option>2.17 By graduation, students must be able to consider and address public and population health factors in patient care.</option>
- <option>2.18 By graduation, students must be able to apply ethical, legal, and medico-legal principles in delivering optometric care.</option>
- <option>2.19 By graduation, students must be able to use research principles to critically appraise scientific and clinical literature.</option>
- <option>2.20 By graduation, students must be able to communicate effectively, orally and in writing, with patients and other professionals.</option>
- <option>2.21 By graduation, students must be able to demonstrate understanding of optometric practice management principles.</option>
- </select>
- </div>
+<div id="standardsSection">
+  <div class="section-box">
+    <div class="subheader">Standards Mapping (Hierarchical)</div>
+    <div class="cols-2">
+      <div><label class="st-label">NBEO Condition</label><input type="text" id="nbeoCondition" placeholder="e.g. C1.2.3 — Glaucoma"/></div>
+      <div><label class="st-label">NBEO Discipline</label><input type="text" id="nbeoDiscipline" placeholder="e.g. D2.1 — Ocular Health"/></div>
+    </div>
+    <div class="cols-2">
+      <div><label class="st-label">ASCO</label><input type="text" id="ascoStandard" placeholder="e.g. A3.1 — Patient Care"/></div>
+      <div><label class="st-label">UHCO</label><input type="text" id="uhcoStandard" placeholder="e.g. U2.4 — Competency"/></div>
+    </div>
+    <div class="cols-1"><label class="st-label">ACOE Standard</label>
+      <select id="acoeStandard">
+        <option>2.8  Students must attain the defined set of clinical competencies established by the program.</option>
+        <option>2.12 By graduation, students must be able to recognize and appropriately respond to ocular and systemic emergencies in optometric practice.</option>
+        <option>2.13 By graduation, students must be able to identify and analyze relevant history and presenting problems for each patient.</option>
+        <option>2.14 By graduation, students must be able to perform appropriate examinations and evaluate findings to reach an accurate diagnosis.</option>
+        <option>2.15 By graduation, students must be able to formulate and justify management plans, understanding risks and benefits of options.</option>
+        <option>2.16 By graduation, students must be able to provide clear, relevant patient education and counseling.</option>
+        <option>2.17 By graduation, students must be able to consider and address public and population health factors in patient care.</option>
+        <option>2.18 By graduation, students must be able to apply ethical, legal, and medico-legal principles in delivering optometric care.</option>
+        <option>2.19 By graduation, students must be able to use research principles to critically appraise scientific and clinical literature.</option>
+        <option>2.20 By graduation, students must be able to communicate effectively, orally and in writing, with patients and other professionals.</option>
+        <option>2.21 By graduation, students must be able to demonstrate understanding of optometric practice management principles.</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Exam Questions -->
+  <div class="section-box">
+    <div class="subheader">Exam Question(s)</div>
+    <div id="questionsContainer">
+      <div class="q-row"><input type="text" placeholder="Question 1" class="q-input"/><button class="st-btn st-btn-secondary" onclick="removeQ(this)">✕</button></div>
+    </div>
+    <button class="st-btn st-btn-secondary" onclick="addQ()" style="margin-top:6px">Add another question</button>
+  </div>
 </div>
 
-<!-- Exam Questions (shown when assessed = Yes) -->
-<div class="section hidden" id="questionsSection">
- <h2>Exam Questions</h2>
- <div id="questions-container">
- <div class="q-row">
- <input type="text" placeholder="Question 1" class="question-input"/>
- <button class="btn-secondary" onclick="removeQuestion(this)"></button>
- </div>
- </div>
- <button class="btn-secondary" onclick="addQuestion()" style="margin-top:10px">+ Add Another Question</button>
+<!-- Justification (shown when assessed = No) -->
+<div id="justificationSection" class="hidden">
+  <div class="cols-1"><label class="st-label">Justification for not assessing this Learning Objective</label><textarea id="justification"></textarea></div>
 </div>
 
-<!-- Not Assessed Justification -->
-<div class="section hidden" id="justificationSection">
- <h2>Justification</h2>
- <div class="field">
- <label>Justification for not assessing this Learning Objective</label>
- <textarea id="justification" rows="3" placeholder="Explain why this LO is not assessed..."></textarea>
- </div>
+<!-- Save button -->
+<div style="margin:1rem 0">
+  <button class="st-btn st-btn-primary" onclick="saveLO()">Save this Learning Objective</button>
 </div>
+<div id="saveMsg"></div>
 
-<!-- Save & Actions -->
-<div class="btn-bar">
- <button class="btn-primary" onclick="saveLO()"> Save this Learning Objective</button>
- <button class="btn-secondary" onclick="loadMappings()"> Reload Saved Mappings from GitHub</button>
+<hr class="st-divider"/>
+
+<!-- Data Controls -->
+<div class="st-h3">Data Controls</div>
+<div class="btn-row">
+  <button class="st-btn st-btn-secondary" onclick="loadMappings()">Reload saved mappings from GitHub</button>
 </div>
-<div id="statusMsg"></div>
+<div id="reloadMsg"></div>
 
-<!-- Saved Mappings Table -->
-<div class="section">
- <h2>Saved Learning Objectives</h2>
- <div id="tableContainer"><div class="msg info">Loading... (configure GitHub settings and click Reload)</div></div>
-</div>
+<!-- Saved LOs table -->
+<div class="st-h3">Saved Learning Objectives</div>
+<div id="tableContainer"><div class="st-info">No mappings loaded yet. Configure GitHub settings and click Reload.</div></div>
 
-<!-- Dashboard -->
-<details>
- <summary> Learning Objective Visual Dashboard</summary>
- <div class="section" style="margin-top:10px">
- <div class="field">
- <label>Filter by Year</label>
- <select id="filterYear" onchange="renderCharts()"><option value="">All Years</option></select>
- </div>
- <div class="field">
- <label>Filter by Semester</label>
- <select id="filterSemester" onchange="renderCharts()">
- <option value="">All Semesters</option>
- <option>Fall</option><option>Spring</option><option>Summer</option>
- </select>
- </div>
- <div class="chart-wrap">
- <div><h3 style="font-size:14px;color:#555;margin-bottom:8px">1. Bloom Level Coverage</h3><canvas id="chartBloom"></canvas></div>
- <div><h3 style="font-size:14px;color:#555;margin-bottom:8px">2. Bloom by Teaching Method</h3><canvas id="chartTeaching"></canvas></div>
- <div><h3 style="font-size:14px;color:#555;margin-bottom:8px">3. Bloom by Micro-Activity (Top 8)</h3><canvas id="chartMicro"></canvas></div>
- <div><h3 style="font-size:14px;color:#555;margin-bottom:8px">4. Bloom by Summative Assessment (Top 8)</h3><canvas id="chartSummative"></canvas></div>
- </div>
- </div>
+<hr class="st-divider"/>
+
+<!-- Dashboard expander -->
+<details class="st-expander">
+  <summary>Learning Objective Visual Dashboard - Summary</summary>
+  <div class="expander-body">
+    <div class="cols-2">
+      <div><label class="st-label">Filter by Year</label>
+        <select id="filterYear" onchange="renderCharts()"><option value="">All years</option></select>
+      </div>
+      <div><label class="st-label">Filter by Semester</label>
+        <select id="filterSemester" onchange="renderCharts()">
+          <option value="">All semesters</option><option>Fall</option><option>Spring</option><option>Summer</option>
+        </select>
+      </div>
+    </div>
+    <div class="st-h3">1. Bloom Level Coverage (All mapped LOs)</div>
+    <canvas id="chartBloom" style="max-height:240px"></canvas>
+    <div class="st-h3">2. Bloom Levels by Teaching Method</div>
+    <canvas id="chartTeaching" style="max-height:260px"></canvas>
+    <div class="chart-grid">
+      <div>
+        <div class="st-h3">3. Bloom Levels by Micro-Activity (Top 8)</div>
+        <canvas id="chartMicro"></canvas>
+      </div>
+      <div>
+        <div class="st-h3">4. Bloom Levels by Summative Assessment (Top 8)</div>
+        <canvas id="chartSummative"></canvas>
+      </div>
+    </div>
+  </div>
 </details>
 
-<script>
-// ---- State ----
-let allData = [];
-const BLOOM_ORDER = ['Remember','Understand','Apply','Analyze','Evaluate','Create','Other'];
-const BLOOM_COLORS = ['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f','#edc948','#bab0ac'];
+</div><!-- end main-container -->
 
+<script>
 // ---- Config ----
 function loadConfig(){
- document.getElementById('ghToken').value = sessionStorage.getItem('ghToken')||'';
- document.getElementById('ghRepo').value = sessionStorage.getItem('ghRepo')||'PreethiKakarla-AI/lo-mapping-app';
- document.getElementById('ghBranch').value = sessionStorage.getItem('ghBranch')||'main';
- document.getElementById('ghFilePath').value = sessionStorage.getItem('ghFilePath')||'tblLO_Mapping.csv';
- updateConfigNotice();
+  document.getElementById('ghToken').value=sessionStorage.getItem('ghToken')||'';
+  document.getElementById('ghRepo').value=sessionStorage.getItem('ghRepo')||'PreethiKakarla-AI/lo-mapping-app';
+  document.getElementById('ghBranch').value=sessionStorage.getItem('ghBranch')||'main';
+  document.getElementById('ghFilePath').value=sessionStorage.getItem('ghFilePath')||'tblLO_Mapping.csv';
+  const tok=sessionStorage.getItem('ghToken');
+  document.getElementById('configBanner').classList.toggle('hidden',!!tok);
 }
 function saveConfig(){
- sessionStorage.setItem('ghToken', document.getElementById('ghToken').value.trim());
- sessionStorage.setItem('ghRepo', document.getElementById('ghRepo').value.trim());
- sessionStorage.setItem('ghBranch', document.getElementById('ghBranch').value.trim());
- sessionStorage.setItem('ghFilePath', document.getElementById('ghFilePath').value.trim());
- showMsg('Configuration saved for this session.','success');
- updateConfigNotice();
+  sessionStorage.setItem('ghToken',document.getElementById('ghToken').value.trim());
+  sessionStorage.setItem('ghRepo',document.getElementById('ghRepo').value.trim());
+  sessionStorage.setItem('ghBranch',document.getElementById('ghBranch').value.trim());
+  sessionStorage.setItem('ghFilePath',document.getElementById('ghFilePath').value.trim());
+  showSaveMsg('Configuration saved for this session.','success');
+  document.getElementById('configBanner').classList.add('hidden');
 }
-function updateConfigNotice(){
- const token = sessionStorage.getItem('ghToken');
- const notice = document.getElementById('configNotice');
- if(token){ notice.style.display='none'; } else { notice.style.display=''; }
+function cfg(){
+  return{
+    token:document.getElementById('ghToken').value.trim()||sessionStorage.getItem('ghToken')||'',
+    repo:document.getElementById('ghRepo').value.trim()||sessionStorage.getItem('ghRepo')||'',
+    branch:document.getElementById('ghBranch').value.trim()||sessionStorage.getItem('ghBranch')||'main',
+    path:document.getElementById('ghFilePath').value.trim()||sessionStorage.getItem('ghFilePath')||'tblLO_Mapping.csv'
+  };
 }
-function getConfig(){
- return {
- token: document.getElementById('ghToken').value.trim() || sessionStorage.getItem('ghToken')||'',
- repo: document.getElementById('ghRepo').value.trim() || sessionStorage.getItem('ghRepo')||'',
- branch: document.getElementById('ghBranch').value.trim() || sessionStorage.getItem('ghBranch')||'main',
- path: document.getElementById('ghFilePath').value.trim() || sessionStorage.getItem('ghFilePath')||'tblLO_Mapping.csv',
- };
-}
-
-// ---- Toggle Assessed ----
+// ---- Toggle assessed ----
 function toggleAssessed(){
- const isYes = document.getElementById('isAssessed').value === 'Yes';
- document.getElementById('standardsSection').classList.toggle('hidden', !isYes);
- document.getElementById('questionsSection').classList.toggle('hidden', !isYes);
- document.getElementById('justificationSection').classList.toggle('hidden', isYes);
+  const yes=document.getElementById('isAssessed').value==='Yes';
+  document.getElementById('standardsSection').classList.toggle('hidden',!yes);
+  document.getElementById('justificationSection').classList.toggle('hidden',yes);
 }
-
 // ---- Questions ----
-let qCount = 1;
-function addQuestion(){
- qCount++;
- const container = document.getElementById('questions-container');
- const div = document.createElement('div');
- div.className='q-row';
- div.innerHTML = '<input type="text" placeholder="Question '+qCount+'" class="question-input"/><button class="btn-secondary" onclick="removeQuestion(this)"></button>';
- container.appendChild(div);
+let qn=1;
+function addQ(){
+  qn++;
+  const d=document.createElement('div');d.className='q-row';
+  d.innerHTML='<input type="text" placeholder="Question '+qn+'" class="q-input"/><button class="st-btn st-btn-secondary" onclick="removeQ(this)">✕</button>';
+  document.getElementById('questionsContainer').appendChild(d);
 }
-function removeQuestion(btn){
- const rows = document.querySelectorAll('#questions-container .q-row');
- if(rows.length <= 1){ btn.previousElementSibling.value=''; return; }
- btn.parentElement.remove();
+function removeQ(btn){
+  const rows=document.querySelectorAll('.q-row');
+  if(rows.length<=1){btn.previousElementSibling.value='';return;}
+  btn.parentElement.remove();
 }
-
-// ---- GitHub API ----
-async function ghGet(token, repo, path, branch){
- const url = 'https://api.github.com/repos/'+repo+'/contents/'+path+'?ref='+branch;
- const r = await fetch(url,{headers:{Authorization:'Bearer '+token, Accept:'application/vnd.github+json'}});
- if(r.status===404) return {content:null, sha:null};
- if(!r.ok) throw new Error('GitHub GET error '+r.status+': '+await r.text());
- const d = await r.json();
- return {content: atob(d.content.replace(/\n/g,'')), sha: d.sha};
+// ---- GitHub helpers ----
+async function ghGet(t,r,p,b){
+  const res=await fetch('https://api.github.com/repos/'+r+'/contents/'+p+'?ref='+b,
+    {headers:{Authorization:'Bearer '+t,Accept:'application/vnd.github+json'}});
+  if(res.status===404)return{content:null,sha:null};
+  if(!res.ok)throw new Error('GET '+res.status+': '+await res.text());
+  const d=await res.json();
+  return{content:atob(d.content.replace(/\n/g,'')),sha:d.sha};
 }
-async function ghPut(token, repo, path, branch, csvContent, message, sha){
- const url = 'https://api.github.com/repos/'+repo+'/contents/'+path;
- const body = {message, content: btoa(unescape(encodeURIComponent(csvContent))), branch};
- if(sha) body.sha = sha;
- const r = await fetch(url,{method:'PUT',headers:{Authorization:'Bearer '+token, Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify(body)});
- if(!r.ok) throw new Error('GitHub PUT error '+r.status+': '+await r.text());
- return r.json();
+async function ghPut(t,r,p,b,csv,msg,sha){
+  const body={message:msg,content:btoa(unescape(encodeURIComponent(csv))),branch:b};
+  if(sha)body.sha=sha;
+  const res=await fetch('https://api.github.com/repos/'+r+'/contents/'+p,
+    {method:'PUT',headers:{Authorization:'Bearer '+t,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!res.ok)throw new Error('PUT '+res.status+': '+await res.text());
+  return res.json();
 }
-
-// ---- CSV Helpers ----
-function escapeCSV(v){ v = String(v||''); if(v.includes(',')||v.includes('"')||v.includes('\n')) return '"'+v.replace(/"/g,'""')+'"'; return v; }
-function rowToCSV(cols, row){ return cols.map(c=>escapeCSV(row[c]||'')).join(','); }
-
+// ---- CSV ----
+function esc(v){v=String(v||'');return(v.includes(',')||v.includes('"')||v.includes('\n'))?'"'+v.replace(/"/g,'""')+'"':v;}
+function rowCSV(cols,row){return cols.map(c=>esc(row[c]||'')).join(',');}
 // ---- Save LO ----
 async function saveLO(){
- const lo = document.getElementById('learningObjective').value.trim();
- if(!lo){ showMsg('Learning Objective is required.','error'); return; }
- const isAssessed = document.getElementById('isAssessed').value === 'Yes';
- const questions = isAssessed ? [...document.querySelectorAll('.question-input')].map(i=>i.value.trim()).filter(Boolean) : [];
- if(isAssessed && questions.length===0){ showMsg('At least one question is required when LO is assessed.','error'); return; }
- const cfg = getConfig();
- if(!cfg.token){ showMsg('Please enter your GitHub Token in the config section above.','error'); return; }
-
- const base = {
- Year: document.getElementById('year').value,
- Semester: document.getElementById('semester').value,
- Type: document.getElementById('courseType').value,
- CourseName: document.getElementById('courseName').value,
- Lecture_Name: document.getElementById('lectureName').value,
- LearningObjective: lo,
- BloomLevel: document.getElementById('bloomLevel').value,
- Activity: document.getElementById('teachingMethod').value,
- MicroActivity: document.getElementById('microActivity').value,
- AssessmentMethod: document.getElementById('summativeAssessment').value,
- Difficulty: document.getElementById('difficulty').value,
- IsAssessed: document.getElementById('isAssessed').value,
- NBEO_Condition: isAssessed ? document.getElementById('nbeoCondition').value : '',
- NBEO_Discipline: isAssessed ? document.getElementById('nbeoDiscipline').value : '',
- ASCO_Standard: isAssessed ? document.getElementById('ascoStandard').value : '',
- UHCO_Standard: isAssessed ? document.getElementById('uhcoStandard').value : '',
- ACOE_Standard: isAssessed ? document.getElementById('acoeStandard').value : '',
- Questions: isAssessed ? questions.join(' | ') : document.getElementById('justification').value,
- };
-
- showMsg('Saving to GitHub...','info');
- try {
- const {content, sha} = await ghGet(cfg.token, cfg.repo, cfg.path, cfg.branch);
- const cols = Object.keys(base);
- let csvText = '';
- if(content && content.trim()){
- const existing = Papa.parse(content, {header:true, skipEmptyLines:true});
- const allCols = [...new Set([...existing.meta.fields||[], ...cols])];
- csvText = allCols.join(',') + '\n';
- existing.data.forEach(r=>{ csvText += rowToCSV(allCols,r)+'\n'; });
- if(!isAssessed){
- csvText += rowToCSV(allCols, base)+'\n';
- } else {
- questions.forEach(q=>{ const row={...base, Questions:q}; csvText += rowToCSV(allCols,row)+'\n'; });
- }
- } else {
- csvText = cols.join(',')+'\n';
- if(!isAssessed){
- csvText += rowToCSV(cols, base)+'\n';
- } else {
- questions.forEach(q=>{ const row={...base, Questions:q}; csvText += rowToCSV(cols,row)+'\n'; });
- }
- }
- await ghPut(cfg.token, cfg.repo, cfg.path, cfg.branch, csvText, 'Update LO mapping from web app', sha);
- showMsg('Saved successfully to GitHub!','success');
- loadMappings();
- } catch(e){ showMsg('Error saving: '+e.message,'error'); }
+  const lo=document.getElementById('learningObjective').value.trim();
+  if(!lo){showSaveMsg('Learning Objective is required.','error');return;}
+  const assessed=document.getElementById('isAssessed').value==='Yes';
+  const questions=assessed?[...document.querySelectorAll('.q-input')].map(i=>i.value.trim()).filter(Boolean):[];
+  if(assessed&&!questions.length){showSaveMsg('At least one question is required when LO is assessed.','error');return;}
+  const c=cfg();
+  if(!c.token){showSaveMsg('Enter your GitHub Token in the configuration section.','error');return;}
+  const base={
+    Year:document.getElementById('year').value,
+    Semester:document.getElementById('semester').value,
+    Type:document.getElementById('courseType').value,
+    CourseName:document.getElementById('courseName').value,
+    Lecture_Name:document.getElementById('lectureName').value,
+    LearningObjective:lo,
+    BloomLevel:document.getElementById('bloomLevel').value,
+    Activity:document.getElementById('teachingMethod').value,
+    MicroActivity:document.getElementById('microActivity').value,
+    AssessmentMethod:document.getElementById('summativeAssessment').value,
+    Difficulty:document.getElementById('difficulty').value,
+    IsAssessed:document.getElementById('isAssessed').value,
+    NBEO_Condition:assessed?document.getElementById('nbeoCondition').value:'',
+    NBEO_Discipline:assessed?document.getElementById('nbeoDiscipline').value:'',
+    ASCO_Standard:assessed?document.getElementById('ascoStandard').value:'',
+    UHCO_Standard:assessed?document.getElementById('uhcoStandard').value:'',
+    ACOE_Standard:assessed?document.getElementById('acoeStandard').value:'',
+    Questions:''
+  };
+  showSaveMsg('Saving...','info');
+  try{
+    const {content,sha}=await ghGet(c.token,c.repo,c.path,c.branch);
+    const cols=Object.keys(base);
+    let csv='';
+    if(content&&content.trim()){
+      const ex=Papa.parse(content,{header:true,skipEmptyLines:true});
+      const allCols=[...new Set([...(ex.meta.fields||[]),...cols])];
+      csv=allCols.join(',')+'\n';
+      ex.data.forEach(r=>{csv+=rowCSV(allCols,r)+'\n';});
+      if(assessed){questions.forEach(q=>{csv+=rowCSV(allCols,{...base,Questions:q})+'\n';});}
+      else{csv+=rowCSV(allCols,{...base,Questions:document.getElementById('justification').value})+'\n';}
+    }else{
+      csv=cols.join(',')+'\n';
+      if(assessed){questions.forEach(q=>{csv+=rowCSV(cols,{...base,Questions:q})+'\n';});}
+      else{csv+=rowCSV(cols,{...base,Questions:document.getElementById('justification').value})+'\n';}
+    }
+    await ghPut(c.token,c.repo,c.path,c.branch,csv,'Update LO mapping from Streamlit app',sha);
+    showSaveMsg('Saved '+( assessed?questions.length:1)+' row(s) to GitHub mapping file.','success');
+    loadMappings();
+  }catch(e){showSaveMsg('Error saving: '+e.message,'error');}
 }
-
-// ---- Load Mappings ----
+// ---- Load mappings ----
+let allData=[];
 async function loadMappings(){
- const cfg = getConfig();
- if(!cfg.token){ showMsg('Enter your GitHub Token to load data.','error'); return; }
- showMsg('Loading from GitHub...','info');
- try {
- const {content} = await ghGet(cfg.token, cfg.repo, cfg.path, cfg.branch);
- if(!content || !content.trim()){ allData=[]; renderTable([]); showMsg('No saved mappings yet.','info'); return; }
- const parsed = Papa.parse(content, {header:true, skipEmptyLines:true});
- allData = parsed.data;
- renderTable(allData);
- populateYearFilter();
- renderCharts();
- clearMsg();
- } catch(e){ showMsg('Error loading: '+e.message,'error'); }
+  const c=cfg();
+  if(!c.token){document.getElementById('reloadMsg').innerHTML='<div class="st-error">Enter your GitHub Token to load data.</div>';return;}
+  document.getElementById('reloadMsg').innerHTML='<div class="st-info">Loading from GitHub...</div>';
+  try{
+    const {content}=await ghGet(c.token,c.repo,c.path,c.branch);
+    if(!content||!content.trim()){allData=[];renderTable([]);document.getElementById('reloadMsg').innerHTML='<div class="st-info">No mappings saved yet.</div>';return;}
+    const p=Papa.parse(content,{header:true,skipEmptyLines:true});
+    allData=p.data;
+    renderTable(allData);
+    populateYearFilter();
+    renderCharts();
+    document.getElementById('reloadMsg').innerHTML='';
+  }catch(e){document.getElementById('reloadMsg').innerHTML='<div class="st-error">Error: '+e.message+'</div>';}
 }
-
 function renderTable(data){
- const container = document.getElementById('tableContainer');
- if(!data||data.length===0){ container.innerHTML='<div class="msg info">No mappings saved yet.</div>'; return; }
- const cols = Object.keys(data[0]);
- let html = '<div style="overflow-x:auto"><table><thead><tr>'+cols.map(c=>'<th>'+c+'</th>').join('')+'</tr></thead><tbody>';
- data.forEach(r=>{ html+='<tr>'+cols.map(c=>'<td>'+escapeHTML(r[c]||'')+'</td>').join('')+'</tr>'; });
- html+='</tbody></table></div>';
- container.innerHTML = html;
+  const el=document.getElementById('tableContainer');
+  if(!data||!data.length){el.innerHTML='<div class="st-info">No mappings saved yet.</div>';return;}
+  const cols=Object.keys(data[0]);
+  let h='<div class="st-table-wrap"><table class="st-df"><thead><tr>'+cols.map(c=>'<th>'+eH(c)+'</th>').join('')+'</tr></thead><tbody>';
+  data.forEach(r=>{h+='<tr>'+cols.map(c=>'<td>'+eH(r[c]||'')+'</td>').join('')+'</tr>';});
+  el.innerHTML=h+'</tbody></table></div>';
 }
-
-function escapeHTML(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-// ---- Dashboard ----
+function eH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+// ---- Charts ----
+const BLOOM=['Remember','Understand','Apply','Analyze','Evaluate','Create','Other'];
+const BCOLS=['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f','#edc948','#bab0ac'];
+let charts={};
+function destroyC(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+function bloomCat(v){const l=String(v||'').toLowerCase();for(const b of BLOOM){if(l.includes(b.toLowerCase()))return b;}return'Other';}
 function populateYearFilter(){
- const years = [...new Set(allData.map(r=>r.Year).filter(Boolean))].sort();
- const sel = document.getElementById('filterYear');
- sel.innerHTML = '<option value="">All Years</option>' + years.map(y=>'<option>'+y+'</option>').join('');
+  const years=[...new Set(allData.map(r=>r.Year).filter(Boolean))].sort();
+  const s=document.getElementById('filterYear');
+  s.innerHTML='<option value="">All years</option>'+years.map(y=>'<option>'+y+'</option>').join('');
 }
-
-let charts = {};
-function destroyChart(id){ if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
-
-function getBloomCategory(level){
- const l = String(level||'').toLowerCase();
- for(const b of BLOOM_ORDER){ if(l.includes(b.toLowerCase())) return b; }
- return 'Other';
-}
-
 function renderCharts(){
- const yr = document.getElementById('filterYear').value;
- const sem = document.getElementById('filterSemester').value;
- let data = allData.filter(r=>r.CourseName);
- if(yr) data = data.filter(r=>String(r.Year)===yr);
- if(sem) data = data.filter(r=>r.Semester===sem);
- data = data.map(r=>({...r, BloomCat: getBloomCategory(r.BloomLevel)}));
-
- // 1. Bloom coverage
- destroyChart('chartBloom');
- const bloomCounts = {};
- BLOOM_ORDER.forEach(b=>bloomCounts[b]=0);
- data.forEach(r=>{ bloomCounts[r.BloomCat]=(bloomCounts[r.BloomCat]||0)+1; });
- const ctx1 = document.getElementById('chartBloom').getContext('2d');
- charts['chartBloom'] = new Chart(ctx1, {type:'bar', data:{labels:BLOOM_ORDER, datasets:[{label:'Count', data:BLOOM_ORDER.map(b=>bloomCounts[b]), backgroundColor:BLOOM_COLORS}]}, options:{responsive:true, plugins:{legend:{display:false}}}});
-
- // 2. Bloom x Teaching Method
- destroyChart('chartTeaching');
- const methods = [...new Set(data.map(r=>r.Activity).filter(Boolean))];
- const tmDatasets = BLOOM_ORDER.map((b,i)=>({label:b, data:methods.map(m=>data.filter(r=>r.Activity===m&&r.BloomCat===b).length), backgroundColor:BLOOM_COLORS[i]}));
- const ctx2 = document.getElementById('chartTeaching').getContext('2d');
- charts['chartTeaching'] = new Chart(ctx2, {type:'bar', data:{labels:methods, datasets:tmDatasets}, options:{responsive:true, scales:{x:{stacked:true},y:{stacked:true}}, plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:10}}}}}});
-
- // 3. Bloom x Micro-Activity (Top 8)
- destroyChart('chartMicro');
- const maCounts = {};
- data.filter(r=>r.MicroActivity).forEach(r=>{ maCounts[r.MicroActivity]=(maCounts[r.MicroActivity]||0)+1; });
- const topMA = Object.entries(maCounts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(e=>e[0]);
- const maDatasets = BLOOM_ORDER.map((b,i)=>({label:b, data:topMA.map(m=>data.filter(r=>r.MicroActivity===m&&r.BloomCat===b).length), backgroundColor:BLOOM_COLORS[i]}));
- const ctx3 = document.getElementById('chartMicro').getContext('2d');
- charts['chartMicro'] = new Chart(ctx3, {type:'bar', data:{labels:topMA, datasets:maDatasets}, options:{responsive:true, scales:{x:{stacked:true},y:{stacked:true}}, plugins:{legend:{display:false}}}});
-
- // 4. Bloom x Summative Assessment (Top 8)
- destroyChart('chartSummative');
- const saCounts = {};
- data.filter(r=>r.AssessmentMethod).forEach(r=>{ saCounts[r.AssessmentMethod]=(saCounts[r.AssessmentMethod]||0)+1; });
- const topSA = Object.entries(saCounts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(e=>e[0]);
- const saDatasets = BLOOM_ORDER.map((b,i)=>({label:b, data:topSA.map(m=>data.filter(r=>r.AssessmentMethod===m&&r.BloomCat===b).length), backgroundColor:BLOOM_COLORS[i]}));
- const ctx4 = document.getElementById('chartSummative').getContext('2d');
- charts['chartSummative'] = new Chart(ctx4, {type:'bar', data:{labels:topSA, datasets:saDatasets}, options:{responsive:true, scales:{x:{stacked:true},y:{stacked:true}}, plugins:{legend:{display:false}}}});
+  const yr=document.getElementById('filterYear').value;
+  const sem=document.getElementById('filterSemester').value;
+  let data=allData.filter(r=>r.CourseName);
+  if(yr)data=data.filter(r=>String(r.Year)===yr);
+  if(sem)data=data.filter(r=>r.Semester===sem);
+  data=data.map(r=>({...r,BC:bloomCat(r.BloomLevel)}));
+  // 1. Bloom coverage bar
+  destroyC('chartBloom');
+  const bc={};BLOOM.forEach(b=>bc[b]=0);data.forEach(r=>{bc[r.BC]=(bc[r.BC]||0)+1;});
+  charts['chartBloom']=new Chart(document.getElementById('chartBloom'),{type:'bar',data:{labels:BLOOM,datasets:[{label:'Count',data:BLOOM.map(b=>bc[b]),backgroundColor:BCOLS}]},options:{responsive:true,plugins:{legend:{display:false}}}});
+  // 2. Bloom x Teaching Method stacked
+  destroyC('chartTeaching');
+  const methods=[...new Set(data.map(r=>r.Activity).filter(Boolean))];
+  const tmDS=BLOOM.map((b,i)=>({label:b,data:methods.map(m=>data.filter(r=>r.Activity===m&&r.BC===b).length),backgroundColor:BCOLS[i]}));
+  charts['chartTeaching']=new Chart(document.getElementById('chartTeaching'),{type:'bar',data:{labels:methods,datasets:tmDS},options:{responsive:true,scales:{x:{stacked:true},y:{stacked:true}},plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}}}});
+  // 3. Bloom x Micro-Activity Top 8
+  destroyC('chartMicro');
+  const maCnt={};data.filter(r=>r.MicroActivity).forEach(r=>{maCnt[r.MicroActivity]=(maCnt[r.MicroActivity]||0)+1;});
+  const topMA=Object.entries(maCnt).sort((a,b)=>b[1]-a[1]).slice(0,8).map(e=>e[0]);
+  const maDS=BLOOM.map((b,i)=>({label:b,data:topMA.map(m=>data.filter(r=>r.MicroActivity===m&&r.BC===b).length),backgroundColor:BCOLS[i]}));
+  charts['chartMicro']=new Chart(document.getElementById('chartMicro'),{type:'bar',data:{labels:topMA,datasets:maDS},options:{responsive:true,scales:{x:{stacked:true},y:{stacked:true}},plugins:{legend:{display:false}}}});
+  // 4. Bloom x Summative Assessment Top 8
+  destroyC('chartSummative');
+  const saCnt={};data.filter(r=>r.AssessmentMethod).forEach(r=>{saCnt[r.AssessmentMethod]=(saCnt[r.AssessmentMethod]||0)+1;});
+  const topSA=Object.entries(saCnt).sort((a,b)=>b[1]-a[1]).slice(0,8).map(e=>e[0]);
+  const saDS=BLOOM.map((b,i)=>({label:b,data:topSA.map(m=>data.filter(r=>r.AssessmentMethod===m&&r.BC===b).length),backgroundColor:BCOLS[i]}));
+  charts['chartSummative']=new Chart(document.getElementById('chartSummative'),{type:'bar',data:{labels:topSA,datasets:saDS},options:{responsive:true,scales:{x:{stacked:true},y:{stacked:true}},plugins:{legend:{display:false}}}});
 }
-
-// ---- Status ----
-function showMsg(msg, type){ const el=document.getElementById('statusMsg'); el.innerHTML='<div class="msg '+type+'">'+msg+'</div>'; }
-function clearMsg(){ document.getElementById('statusMsg').innerHTML=''; }
-
+// ---- Status messages ----
+function showSaveMsg(msg,type){document.getElementById('saveMsg').innerHTML='<div class="st-'+type+'">'+msg+'</div>';}
 // ---- Init ----
 loadConfig();
 toggleAssessed();
